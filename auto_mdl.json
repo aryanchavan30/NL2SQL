@@ -1,0 +1,1294 @@
+{
+  "catalog": "postgresql",
+  "schema": "public",
+  "dataSource": "postgresql",
+  "models": [
+    {
+      "name": "categories",
+      "tableReference": "public.categories",
+      "columns": [
+        {
+          "name": "category_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "category_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "picture",
+          "type": "BYTEA",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "category_id",
+      "properties": {
+        "displayName": "Categories",
+        "description": "Table categories"
+      }
+    },
+    {
+      "name": "customer_customer_demo",
+      "tableReference": "public.customer_customer_demo",
+      "columns": [
+        {
+          "name": "customer_id",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "customer_type_id",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "customer_id",
+      "properties": {
+        "displayName": "Customer Customer Demo",
+        "description": "Table customer_customer_demo"
+      }
+    },
+    {
+      "name": "customer_demographics",
+      "tableReference": "public.customer_demographics",
+      "columns": [
+        {
+          "name": "customer_type_id",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "customer_desc",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "customer_type_id",
+      "properties": {
+        "displayName": "Customer Demographics",
+        "description": "Table customer_demographics"
+      }
+    },
+    {
+      "name": "customers",
+      "tableReference": "public.customers",
+      "columns": [
+        {
+          "name": "customer_id",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "company_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "contact_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "contact_title",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "address",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "city",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "region",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "postal_code",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "country",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "fax",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "customer_id",
+      "properties": {
+        "displayName": "Customers",
+        "description": "Table customers"
+      }
+    },
+    {
+      "name": "employee_territories",
+      "tableReference": "public.employee_territories",
+      "columns": [
+        {
+          "name": "employee_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "territory_id",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "employee_id",
+      "properties": {
+        "displayName": "Employee Territories",
+        "description": "Table employee_territories"
+      }
+    },
+    {
+      "name": "employees",
+      "tableReference": "public.employees",
+      "columns": [
+        {
+          "name": "employee_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "last_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "first_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "title_of_courtesy",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "birth_date",
+          "type": "DATE",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "hire_date",
+          "type": "DATE",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "address",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "city",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "region",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "postal_code",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "country",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "home_phone",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "extension",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "photo",
+          "type": "BYTEA",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "notes",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "reports_to",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "photo_path",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "employee_id",
+      "properties": {
+        "displayName": "Employees",
+        "description": "Table employees"
+      }
+    },
+    {
+      "name": "order_details",
+      "tableReference": "public.order_details",
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "product_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "unit_price",
+          "type": "FLOAT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "quantity",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "discount",
+          "type": "FLOAT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "order_id",
+      "properties": {
+        "displayName": "Order Details",
+        "description": "Table order_details"
+      }
+    },
+    {
+      "name": "orders",
+      "tableReference": "public.orders",
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "customer_id",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "employee_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "order_date",
+          "type": "DATE",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "required_date",
+          "type": "DATE",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "shipped_date",
+          "type": "DATE",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "ship_via",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "freight",
+          "type": "FLOAT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "ship_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "ship_address",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "ship_city",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "ship_region",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "ship_postal_code",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "ship_country",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "order_id",
+      "properties": {
+        "displayName": "Orders",
+        "description": "Table orders"
+      }
+    },
+    {
+      "name": "products",
+      "tableReference": "public.products",
+      "columns": [
+        {
+          "name": "product_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "product_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "supplier_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "category_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "quantity_per_unit",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "unit_price",
+          "type": "FLOAT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "units_in_stock",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "units_on_order",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "reorder_level",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "discontinued",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "product_id",
+      "properties": {
+        "displayName": "Products",
+        "description": "Table products"
+      }
+    },
+    {
+      "name": "region",
+      "tableReference": "public.region",
+      "columns": [
+        {
+          "name": "region_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "region_description",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "region_id",
+      "properties": {
+        "displayName": "Region",
+        "description": "Table region"
+      }
+    },
+    {
+      "name": "shippers",
+      "tableReference": "public.shippers",
+      "columns": [
+        {
+          "name": "shipper_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "company_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "shipper_id",
+      "properties": {
+        "displayName": "Shippers",
+        "description": "Table shippers"
+      }
+    },
+    {
+      "name": "suppliers",
+      "tableReference": "public.suppliers",
+      "columns": [
+        {
+          "name": "supplier_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "company_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "contact_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "contact_title",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "address",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "city",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "region",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "postal_code",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "country",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "fax",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "homepage",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "supplier_id",
+      "properties": {
+        "displayName": "Suppliers",
+        "description": "Table suppliers"
+      }
+    },
+    {
+      "name": "territories",
+      "tableReference": "public.territories",
+      "columns": [
+        {
+          "name": "territory_id",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "territory_description",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "region_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "territory_id",
+      "properties": {
+        "displayName": "Territories",
+        "description": "Table territories"
+      }
+    },
+    {
+      "name": "us_states",
+      "tableReference": "public.us_states",
+      "columns": [
+        {
+          "name": "state_id",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "state_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "state_abbr",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        },
+        {
+          "name": "state_region",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": ""
+          }
+        }
+      ],
+      "primaryKey": "state_id",
+      "properties": {
+        "displayName": "Us States",
+        "description": "Table us_states"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "name": "fk_orders_customers",
+      "models": [
+        "orders",
+        "customers"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "orders.customer_id = customers.customer_id"
+    },
+    {
+      "name": "fk_orders_employees",
+      "models": [
+        "orders",
+        "employees"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "orders.employee_id = employees.employee_id"
+    },
+    {
+      "name": "fk_orders_shippers",
+      "models": [
+        "orders",
+        "shippers"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "orders.ship_via = shippers.shipper_id"
+    },
+    {
+      "name": "fk_order_details_products",
+      "models": [
+        "order_details",
+        "products"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "order_details.product_id = products.product_id"
+    },
+    {
+      "name": "fk_order_details_orders",
+      "models": [
+        "order_details",
+        "orders"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "order_details.order_id = orders.order_id"
+    },
+    {
+      "name": "fk_products_categories",
+      "models": [
+        "products",
+        "categories"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "products.category_id = categories.category_id"
+    },
+    {
+      "name": "fk_products_suppliers",
+      "models": [
+        "products",
+        "suppliers"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "products.supplier_id = suppliers.supplier_id"
+    },
+    {
+      "name": "fk_territories_region",
+      "models": [
+        "territories",
+        "region"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "territories.region_id = region.region_id"
+    },
+    {
+      "name": "fk_employee_territories_territories",
+      "models": [
+        "employee_territories",
+        "territories"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "employee_territories.territory_id = territories.territory_id"
+    },
+    {
+      "name": "fk_employee_territories_employees",
+      "models": [
+        "employee_territories",
+        "employees"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "employee_territories.employee_id = employees.employee_id"
+    },
+    {
+      "name": "fk_customer_customer_demo_customer_demographics",
+      "models": [
+        "customer_customer_demo",
+        "customer_demographics"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "customer_customer_demo.customer_type_id = customer_demographics.customer_type_id"
+    },
+    {
+      "name": "fk_customer_customer_demo_customers",
+      "models": [
+        "customer_customer_demo",
+        "customers"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "customer_customer_demo.customer_id = customers.customer_id"
+    },
+    {
+      "name": "fk_employees_employees",
+      "models": [
+        "employees",
+        "employees"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "employees.reports_to = employees.employee_id"
+    }
+  ],
+  "metrics": [],
+  "views": []
+}

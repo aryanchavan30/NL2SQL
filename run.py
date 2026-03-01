@@ -1,0 +1,735 @@
+"""
+Interactive NL2SQL CLI — Ask questions in natural language, get SQL back.
+
+Usage:
+    python run.py                          # Auto-introspects DB, builds MDL using mdl/schema.py
+    python run.py --mdl path/to/mdl.json   # Load MDL from file on startup
+"""
+
+import asyncio
+import hashlib
+import json
+import logging
+import os
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import asyncpg
+from langchain_groq import ChatGroq
+from langchain_ollama import OllamaEmbeddings
+
+from config import Settings
+from generation.answer import AnswerGenerator
+from generation.intent import IntentClassifier
+from generation.sql_correction import SQLCorrector, SQLValidator
+from generation.sql_gen import SQLGenerator
+from indexing.pipeline import IndexingPipeline
+from indexing.store import FAISSStoreManager
+from mdl.schema import MDL, Column, Model, Relationship
+from retrieval.db_schema import DBSchemaRetrieval
+from retrieval.historical import HistoricalQuestionRetrieval
+from retrieval.instructions import InstructionsRetrieval
+from retrieval.sql_pairs import SqlPairsRetrieval
+from services.ask import AskService
+from services.semantics import SemanticsPreparationService
+
+
+PG_TYPE_MAP = {
+    "integer": "INTEGER",
+    "smallint": "SMALLINT",
+    "bigint": "BIGINT",
+    "real": "FLOAT",
+    "double precision": "DOUBLE",
+    "numeric": "NUMERIC",
+    "character varying": "VARCHAR",
+    "character": "VARCHAR",
+    "text": "TEXT",
+    "boolean": "BOOLEAN",
+    "date": "DATE",
+    "timestamp without time zone": "TIMESTAMP",
+    "timestamp with time zone": "TIMESTAMP",
+    "bytea": "BYTEA",
+    "json": "JSON",
+    "jsonb": "JSON",
+}
+
+
+class NL2SQLEngine:
+    """All-in-one engine for interactive NL2SQL.
+
+    Delegates to AskService and SemanticsPreparationService — the same services
+    used by the FastAPI app in main.py — so behaviour is identical.
+    """
+
+    def __init__(self):
+        self.settings = Settings()
+        self.store_manager = None
+        self.pg_pool = None
+        self.ask_service: AskService | None = None
+        self.semantics_service: SemanticsPreparationService | None = None
+        self.answer_generator: AnswerGenerator | None = None
+        self._indexed = False
+        self._current_mdl: MDL | None = None
+        self._histories: list[dict] = []
+
+    async def initialize(self):
+        """Initialize all components (mirrors main.py lifespan wiring)."""
+        s = self.settings
+
+        print("[1/5] Initializing LLM (Groq)...")
+        llm = ChatGroq(
+            api_key=s.groq_api_key,
+            model=s.groq_model,
+            temperature=0,
+        )
+
+        print("[2/5] Initializing Embeddings (Ollama)...")
+        embeddings = OllamaEmbeddings(
+            base_url=s.ollama_base_url,
+            model=s.ollama_embedding_model,
+        )
+        try:
+            await embeddings.aembed_query("test")
+        except Exception as e:
+            print(f"\n  ERROR: Cannot connect to Ollama at {s.ollama_base_url}")
+            print(f"  Make sure Ollama is running: ollama serve")
+            print(f"  And model is pulled: ollama pull {s.ollama_embedding_model}")
+            print(f"  Error: {e}")
+            sys.exit(1)
+
+        print("[3/5] Initializing FAISS stores...")
+        self.store_manager = FAISSStoreManager(
+            dimension=s.embedding_dimension,
+            persist_dir=s.faiss_persist_dir,
+        )
+        self.store_manager.load_all()
+
+        print("[4/5] Connecting to PostgreSQL...")
+        try:
+            self.pg_pool = await asyncpg.create_pool(
+                host=s.pg_host,
+                port=s.pg_port,
+                user=s.pg_user,
+                password=s.pg_password,
+                database=s.pg_database,
+                min_size=2,
+                max_size=5,
+            )
+            async with self.pg_pool.acquire() as conn:
+                version = await conn.fetchval("SELECT version()")
+                print(f"  Connected: {version[:60]}...")
+        except Exception as e:
+            print(f"\n  ERROR: Cannot connect to PostgreSQL at {s.pg_host}:{s.pg_port}/{s.pg_database}")
+            print(f"  Error: {e}")
+            sys.exit(1)
+
+        print("[5/5] Wiring services...")
+
+        # ── Build components (same order as main.py lifespan) ────────────────
+        indexing_pipeline = IndexingPipeline(
+            store_manager=self.store_manager,
+            embeddings=embeddings,
+            column_batch_size=s.column_indexing_batch_size,
+        )
+
+        historical_retrieval = HistoricalQuestionRetrieval(
+            store_manager=self.store_manager,
+            embeddings=embeddings,
+            similarity_threshold=s.historical_question_similarity_threshold,
+        )
+        sql_pairs_retrieval = SqlPairsRetrieval(
+            store_manager=self.store_manager,
+            embeddings=embeddings,
+            similarity_threshold=s.sql_pairs_similarity_threshold,
+            max_size=s.sql_pairs_retrieval_max_size,
+        )
+        instructions_retrieval = InstructionsRetrieval(
+            store_manager=self.store_manager,
+            embeddings=embeddings,
+            similarity_threshold=s.instructions_similarity_threshold,
+            max_size=s.instructions_retrieval_max_size,
+        )
+        db_schema_retrieval = DBSchemaRetrieval(
+            store_manager=self.store_manager,
+            embeddings=embeddings,
+            table_retrieval_size=s.table_retrieval_size,
+            table_column_retrieval_size=s.table_column_retrieval_size,
+        )
+
+        intent_classifier = IntentClassifier(llm=llm)
+        sql_generator = SQLGenerator(llm=llm)
+        self.answer_generator = AnswerGenerator(llm=llm)
+        sql_corrector = SQLCorrector(llm=llm)
+        sql_validator = SQLValidator(pg_pool=self.pg_pool)
+
+        # ── Wire AskService (identical to main.py) ──────────────────────────
+        self.ask_service = AskService(
+            historical_retrieval=historical_retrieval,
+            sql_pairs_retrieval=sql_pairs_retrieval,
+            instructions_retrieval=instructions_retrieval,
+            intent_classifier=intent_classifier,
+            db_schema_retrieval=db_schema_retrieval,
+            sql_generator=sql_generator,
+            sql_corrector=sql_corrector,
+            sql_validator=sql_validator,
+            max_sql_correction_retries=s.max_sql_correction_retries,
+            cache_maxsize=s.ask_cache_maxsize,
+            cache_ttl=s.ask_cache_ttl,
+        )
+
+        # ── Wire SemanticsPreparationService (identical to main.py) ─────────
+        self.semantics_service = SemanticsPreparationService(
+            indexing_pipeline=indexing_pipeline,
+            store_manager=self.store_manager,
+            maxsize=s.ask_cache_maxsize,
+            ttl=s.ask_cache_ttl,
+        )
+
+        print()
+        print("All systems ready!")
+
+    # ── MDL Loading ─────────────────────────────────────────────────────────
+
+    async def index_mdl_file(self, mdl_path: str):
+        """Load MDL JSON file, validate through mdl/schema.py, and index."""
+        print(f"\nLoading MDL from: {mdl_path}")
+        with open(mdl_path, "r", encoding="utf-8") as f:
+            raw = json.loads(f.read())
+
+        # Validate through our Pydantic MDL model
+        mdl = MDL.model_validate(raw)
+        self._current_mdl = mdl
+
+        print(f"  MDL validated successfully:")
+        print(f"    Models:        {len(mdl.models)}")
+        for m in mdl.models:
+            print(f"      - {m.name} ({len(m.columns)} columns, pk={m.primaryKey})")
+        print(f"    Relationships: {len(mdl.relationships)}")
+        for r in mdl.relationships:
+            print(f"      - {r.name}: {r.models[0]} -> {r.models[1]} ({r.joinType.value})")
+        print(f"    Metrics:       {len(mdl.metrics)}")
+        print(f"    Views:         {len(mdl.views)}")
+        print()
+
+        # Serialize validated MDL back to JSON for indexing pipeline
+        mdl_json = mdl.model_dump_json(by_alias=True)
+        await self._run_indexing(mdl_json)
+
+    async def index_from_db(self):
+        """Auto-introspect PostgreSQL and build MDL using mdl/schema.py models."""
+        print("\nIntrospecting database to build MDL...")
+        async with self.pg_pool.acquire() as conn:
+            # Get all tables
+            table_rows = await conn.fetch("""
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+                  AND table_type = 'BASE TABLE'
+                ORDER BY table_name
+            """)
+
+            models = []
+            for table_row in table_rows:
+                table_name = table_row["table_name"]
+
+                # Get columns
+                col_rows = await conn.fetch("""
+                    SELECT column_name, data_type, is_nullable, column_default
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public' AND table_name = $1
+                    ORDER BY ordinal_position
+                """, table_name)
+
+                # Get primary key
+                pk_rows = await conn.fetch("""
+                    SELECT kcu.column_name
+                    FROM information_schema.table_constraints tc
+                    JOIN information_schema.key_column_usage kcu
+                      ON tc.constraint_name = kcu.constraint_name
+                    WHERE tc.table_schema = 'public'
+                      AND tc.table_name = $1
+                      AND tc.constraint_type = 'PRIMARY KEY'
+                """, table_name)
+
+                pk_col = pk_rows[0]["column_name"] if pk_rows else ""
+
+                # Build Column objects using mdl/schema.py
+                columns = [
+                    Column(
+                        name=c["column_name"],
+                        type=PG_TYPE_MAP.get(c["data_type"], c["data_type"].upper()),
+                        properties={"description": ""},
+                    )
+                    for c in col_rows
+                ]
+
+                # Build Model object using mdl/schema.py
+                models.append(Model(
+                    name=table_name,
+                    tableReference=f"public.{table_name}",
+                    primaryKey=pk_col,
+                    columns=columns,
+                    properties={
+                        "displayName": table_name.replace("_", " ").title(),
+                        "description": f"Table {table_name}",
+                    },
+                ))
+
+            # Get foreign key relationships
+            fk_rows = await conn.fetch("""
+                SELECT
+                    tc.constraint_name,
+                    tc.table_name AS source_table,
+                    kcu.column_name AS source_column,
+                    ccu.table_name AS target_table,
+                    ccu.column_name AS target_column
+                FROM information_schema.table_constraints tc
+                JOIN information_schema.key_column_usage kcu
+                  ON tc.constraint_name = kcu.constraint_name
+                JOIN information_schema.constraint_column_usage ccu
+                  ON tc.constraint_name = ccu.constraint_name
+                WHERE tc.constraint_type = 'FOREIGN KEY'
+                  AND tc.table_schema = 'public'
+            """)
+
+            # Build Relationship objects using mdl/schema.py
+            relationships = [
+                Relationship(
+                    name=fk["constraint_name"],
+                    models=[fk["source_table"], fk["target_table"]],
+                    joinType="MANY_TO_ONE",
+                    condition=f"{fk['source_table']}.{fk['source_column']} = {fk['target_table']}.{fk['target_column']}",
+                )
+                for fk in fk_rows
+            ]
+
+        # Build the full MDL using mdl/schema.py
+        mdl = MDL(
+            catalog="postgresql",
+            schema="public",
+            dataSource="postgresql",
+            models=models,
+            relationships=relationships,
+            metrics=[],
+            views=[],
+        )
+        self._current_mdl = mdl
+
+        print(f"  Built MDL with {len(mdl.models)} models, {len(mdl.relationships)} relationships:")
+        for m in mdl.models:
+            print(f"    - {m.name} ({len(m.columns)} columns, pk={m.primaryKey})")
+        print()
+
+        # Save MDL JSON for reference/reuse
+        mdl_json = mdl.model_dump_json(by_alias=True, indent=2)
+        mdl_path = os.path.join(os.path.dirname(__file__), "auto_mdl.json")
+        with open(mdl_path, "w") as f:
+            f.write(mdl_json)
+        print(f"  MDL saved to: {mdl_path}")
+        print(f"  (You can edit this file and reload with --mdl {mdl_path})")
+        print()
+
+        await self._run_indexing(mdl.model_dump_json(by_alias=True))
+
+    async def _run_indexing(self, mdl_json: str):
+        """Run indexing via SemanticsPreparationService (same as API route)."""
+        print("Indexing... ", end="", flush=True)
+        start = time.time()
+
+        mdl_hash = hashlib.md5(mdl_json.encode()).hexdigest()
+        await self.semantics_service.prepare(
+            mdl_json=mdl_json,
+            mdl_hash=mdl_hash,
+            project_id="default",
+        )
+
+        status = self.semantics_service.get_status(mdl_hash)
+        elapsed = time.time() - start
+
+        if status["status"] == "failed":
+            error_info = status.get("error", {})
+            print(f"FAILED: {error_info.get('message', 'Unknown error')}")
+            return
+
+        print(f"done in {elapsed:.1f}s")
+
+        for name in ["db_schema", "table_descriptions", "view_questions", "sql_pairs"]:
+            store = self.store_manager.get_store(name)
+            count = store.count_documents()
+            if count > 0:
+                print(f"  {name}: {count} documents")
+
+        self._indexed = True
+        print()
+
+    # ── Ask ──────────────────────────────────────────────────────────────────
+
+    async def ask(self, question: str) -> dict:
+        """Ask a question via AskService (same pipeline as API route).
+
+        Submits to AskService.ask() which runs the full pipeline
+        (historical → sql_pairs + instructions → db_schema → intent →
+        sql_gen → validate → correct) as a background task, then polls
+        until the result is ready.
+        """
+        query_id = await self.ask_service.ask(
+            query=question,
+            project_id="default",
+            histories=self._histories if self._histories else None,
+        )
+
+        # Poll until the background pipeline completes
+        while True:
+            result = self.ask_service.get_result(query_id)
+            status = result.get("status", "")
+            if status in ("finished", "failed", "stopped"):
+                break
+            await asyncio.sleep(0.05)
+
+        return result
+
+    async def execute_sql(self, sql: str) -> tuple[list[str], list[dict]]:
+        """Execute SQL and return (columns, rows)."""
+        async with self.pg_pool.acquire() as conn:
+            stmt = await conn.prepare(sql)
+            records = await stmt.fetch()
+            if not records:
+                return [], []
+            columns = [a.name for a in stmt.get_attributes()]
+            rows = [dict(r) for r in records]
+            return columns, rows
+
+    async def generate_answer(
+        self, query: str, sql: str, columns: list[str], rows: list[dict]
+    ) -> dict:
+        """Generate a natural-language answer from query + SQL + data."""
+        return await self.answer_generator.run(
+            query=query, sql=sql, columns=columns, rows=rows
+        )
+
+    async def shutdown(self):
+        self.store_manager.save_all()
+        if self.pg_pool:
+            await self.pg_pool.close()
+
+
+# ── Display Helpers ─────────────────────────────────────────────────────────
+
+
+def print_banner():
+    print("=" * 60)
+    print("  NL2SQL — Ask your database in natural language")
+    print("=" * 60)
+    print()
+
+
+def print_retrieved_schema(ddls: list[str]):
+    print()
+    print("  Retrieved Schema:")
+    print("  " + "=" * 50)
+    for ddl in ddls:
+        for line in ddl.strip().split("\n"):
+            print(f"  {line}")
+        print("  " + "-" * 50)
+    print()
+
+
+def print_answer(answer: str, num_rows_used: int, total_rows: int):
+    print()
+    print("  Answer:")
+    print("  " + "\u2500" * 50)
+    for line in answer.strip().split("\n"):
+        print(f"  {line}")
+    if num_rows_used < total_rows:
+        print(f"\n  (Based on {num_rows_used} of {total_rows} rows)")
+    print("  " + "\u2500" * 50)
+
+
+def print_sql(sql: str):
+    print()
+    print("  SQL:")
+    print("  " + "-" * 50)
+    for line in sql.strip().split("\n"):
+        print(f"  {line}")
+    print("  " + "-" * 50)
+
+
+def print_results(rows: list[dict], max_rows: int = 20):
+    if not rows:
+        print("  (no rows returned)")
+        return
+
+    columns = list(rows[0].keys())
+    widths = {col: max(len(str(col)), max(len(str(row.get(col, ""))) for row in rows[:max_rows])) for col in columns}
+    widths = {col: min(w, 40) for col, w in widths.items()}
+
+    header = " | ".join(str(col).ljust(widths[col])[:widths[col]] for col in columns)
+    print(f"  {header}")
+    print(f"  {'-' * len(header)}")
+
+    for row in rows[:max_rows]:
+        line = " | ".join(str(row.get(col, "")).ljust(widths[col])[:widths[col]] for col in columns)
+        print(f"  {line}")
+
+    if len(rows) > max_rows:
+        print(f"  ... and {len(rows) - max_rows} more rows")
+
+    print(f"\n  ({len(rows)} row{'s' if len(rows) != 1 else ''} total)")
+
+
+def extract_sql_from_result(result: dict) -> str | None:
+    """Extract SQL string from AskService result format."""
+    response = result.get("response")
+    if response and isinstance(response, list) and len(response) > 0:
+        return response[0].get("sql", "")
+    # Also check invalid_sql for failed corrections
+    return result.get("invalid_sql")
+
+
+# ── Main Loop ───────────────────────────────────────────────────────────────
+
+
+async def main():
+    print_banner()
+
+    engine = NL2SQLEngine()
+    await engine.initialize()
+
+    # Check if MDL file provided via args
+    mdl_path = None
+    for i, arg in enumerate(sys.argv[1:], 1):
+        if arg == "--mdl" and i < len(sys.argv):
+            mdl_path = sys.argv[i + 1]
+
+    # Check if already indexed
+    db_schema_store = engine.store_manager.get_store("db_schema")
+    already_indexed = db_schema_store.count_documents() > 0
+
+    if mdl_path:
+        await engine.index_mdl_file(mdl_path)
+    elif already_indexed:
+        count = db_schema_store.count_documents()
+        print(f"Found existing index with {count} schema documents. Using cached index.")
+        print("  (Use --mdl <path> to re-index, or type 'reindex' to rebuild from DB)")
+        print()
+        engine._indexed = True
+    else:
+        print("No indexed schema found. Auto-introspecting database via MDL models...")
+        await engine.index_from_db()
+
+    if not engine._indexed:
+        print("ERROR: No schema indexed. Cannot proceed.")
+        await engine.shutdown()
+        return
+
+    # Interactive loop
+    print("Type your question in natural language. Commands:")
+    print("  exit / quit          — Exit")
+    print("  reindex              — Re-introspect DB and rebuild MDL index")
+    print("  run                  — Execute the last generated SQL")
+    print("  tables               — Show indexed tables")
+    print("  mdl                  — Show current MDL summary")
+    print("  history              — Show conversation history")
+    print("  clear                — Clear conversation history")
+    print()
+
+    last_sql = None
+
+    while True:
+        try:
+            question = input("Question> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+
+        if not question:
+            continue
+
+        if question.lower() in ("exit", "quit", "q"):
+            break
+
+        if question.lower() == "reindex":
+            await engine.index_from_db()
+            engine._histories.clear()
+            continue
+
+        if question.lower() == "mdl":
+            if engine._current_mdl:
+                mdl = engine._current_mdl
+                print(f"\n  Current MDL:")
+                print(f"    Catalog:       {mdl.catalog}")
+                print(f"    Schema:        {mdl.schema_}")
+                print(f"    Data Source:    {mdl.dataSource}")
+                print(f"    Models ({len(mdl.models)}):")
+                for m in mdl.models:
+                    cols = [c.name for c in m.columns]
+                    print(f"      {m.name} (pk={m.primaryKey})")
+                    print(f"        columns: {', '.join(cols)}")
+                print(f"    Relationships ({len(mdl.relationships)}):")
+                for r in mdl.relationships:
+                    print(f"      {r.models[0]} -> {r.models[1]} ({r.joinType.value}): {r.condition}")
+                print(f"    Metrics:       {len(mdl.metrics)}")
+                print(f"    Views:         {len(mdl.views)}")
+            else:
+                print("  No MDL loaded (using cached index from previous session)")
+            print()
+            continue
+
+        if question.lower() == "tables":
+            import ast
+            store = engine.store_manager.get_store("table_descriptions")
+            docs = store.search_by_filter(lambda d: True)
+            print("\n  Indexed tables:")
+            for doc in docs:
+                try:
+                    content = ast.literal_eval(doc.content)
+                    name = content.get("name", "")
+                    desc = content.get("description", "")
+                    cols = content.get("columns", "")
+                    print(f"    - {name}" + (f"  ({desc})" if desc else ""))
+                    if cols:
+                        print(f"      columns: {cols}")
+                except Exception:
+                    print(f"    - {doc.meta.get('name', '?')}")
+            print()
+            continue
+
+        if question.lower() == "history":
+            if engine._histories:
+                print("\n  Conversation history:")
+                for i, h in enumerate(engine._histories, 1):
+                    print(f"    {i}. Q: {h['question']}")
+                    print(f"       SQL: {h['sql'][:80]}...")
+            else:
+                print("\n  No conversation history yet.")
+            print()
+            continue
+
+        if question.lower() == "clear":
+            engine._histories.clear()
+            print("  Conversation history cleared.\n")
+            continue
+
+        if question.lower() == "run":
+            if last_sql:
+                try:
+                    print("\n  Executing SQL...")
+                    _cols, rows = await engine.execute_sql(last_sql)
+                    print_results(rows)
+                    print()
+                except Exception as e:
+                    print(f"\n  Execution error: {e}\n")
+            else:
+                print("  No SQL to execute. Ask a question first.\n")
+            continue
+
+        # ── Ask the question via AskService ──────────────────────────────────
+        print("\n  Thinking...", end="", flush=True)
+        start = time.time()
+
+        try:
+            result = await engine.ask(question)
+        except Exception as e:
+            print(f"\r  Error: {e}\n")
+            continue
+
+        elapsed = time.time() - start
+        status = result.get("status", "")
+        result_type = result.get("type", "")
+
+        print(f"\r  Done in {elapsed:.1f}s" + " " * 20)
+
+        if status == "finished" and result_type in ("TEXT_TO_SQL", "llm", "view"):
+            sql = extract_sql_from_result(result)
+            if sql:
+                # Auto-execute SQL and generate NL answer
+                try:
+                    columns, rows = await engine.execute_sql(sql)
+                    if columns and rows:
+                        answer_result = await engine.generate_answer(
+                            query=question, sql=sql, columns=columns, rows=rows,
+                        )
+                        if answer_result.get("answer"):
+                            print_answer(
+                                answer_result["answer"],
+                                answer_result.get("num_rows_used", len(rows)),
+                                answer_result.get("total_rows", len(rows)),
+                            )
+                    elif not rows:
+                        print("\n  (Query returned no rows)")
+                except Exception as e:
+                    print(f"\n  (Could not generate answer: {e})")
+
+                print_sql(sql)
+
+                if result.get("retrieved_ddls"):
+                    print_retrieved_schema(result["retrieved_ddls"])
+                if result.get("retrieved_tables"):
+                    print(f"  Tables used: {', '.join(result['retrieved_tables'])}")
+                if result.get("rephrased_question"):
+                    print(f"  Rephrased: {result['rephrased_question']}")
+
+                last_sql = sql
+
+                # Track conversation history for follow-up questions
+                engine._histories.append({
+                    "question": question,
+                    "sql": sql,
+                })
+
+                print()
+                print("  Type 'run' to see raw query results.")
+            else:
+                print("\n  Finished but no SQL in response.")
+
+        elif status == "finished" and result_type == "MISLEADING_QUERY":
+            reasoning = result.get("intent_reasoning", "")
+            print(f"\n  This question doesn't seem related to the database.")
+            if reasoning:
+                print(f"  Reasoning: {reasoning}")
+
+        elif status == "finished" and result_type == "GENERAL":
+            reasoning = result.get("intent_reasoning", "")
+            print(f"\n  This is a general question. Please be more specific about what data you need.")
+            if reasoning:
+                print(f"  Reasoning: {reasoning}")
+
+        elif status == "failed":
+            error = result.get("error", {})
+            error_code = error.get("code", "OTHERS") if isinstance(error, dict) else "OTHERS"
+            error_msg = error.get("message", str(error)) if isinstance(error, dict) else str(error)
+
+            print(f"\n  Failed ({error_code}): {error_msg}")
+
+            # Show the invalid SQL if correction failed
+            invalid_sql = result.get("invalid_sql")
+            if invalid_sql:
+                print(f"\n  Last attempted SQL:")
+                print_sql(invalid_sql)
+                last_sql = invalid_sql
+
+            if result.get("retrieved_ddls"):
+                print_retrieved_schema(result["retrieved_ddls"])
+
+        elif status == "stopped":
+            print("\n  Query was stopped.")
+
+        else:
+            print(f"\n  Unexpected result: status={status}, type={result_type}")
+
+        print()
+
+    # Shutdown
+    print("Saving indices and shutting down...")
+    await engine.shutdown()
+    print("Goodbye!")
+
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.WARNING,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    asyncio.run(main())
