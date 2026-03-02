@@ -223,7 +223,7 @@ class NL2SQLEngine:
 
     async def _run_indexing(self, mdl_json: str):
         """Run indexing via SemanticsPreparationService (same as API route)."""
-        print("Indexing... ", end="", flush=True)
+        print("Indexing...", flush=True)
         start = time.time()
 
         mdl_hash = hashlib.md5(mdl_json.encode()).hexdigest()
@@ -238,10 +238,14 @@ class NL2SQLEngine:
 
         if status["status"] == "failed":
             error_info = status.get("error", {})
-            print(f"FAILED: {error_info.get('message', 'Unknown error')}")
+            print(f"\n  INDEXING FAILED: {error_info.get('message', 'Unknown error')}")
+            print("  Common causes:")
+            print("    - Ollama not running: ollama serve")
+            print(f"    - Model not pulled: ollama pull {self.settings.ollama_embedding_model}")
+            print("    - Embedding input too long: reduce COLUMN_INDEXING_BATCH_SIZE in .env")
             return
 
-        print(f"done in {elapsed:.1f}s")
+        print(f"  done in {elapsed:.1f}s")
 
         for name in ["db_schema", "table_descriptions", "view_questions", "sql_pairs"]:
             store = self.store_manager.get_store(name)

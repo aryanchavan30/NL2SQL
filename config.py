@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # Pipeline thresholds
-    column_indexing_batch_size: int = 50
+    column_indexing_batch_size: int = 15
     table_retrieval_size: int = 10
     table_column_retrieval_size: int = 100
     historical_question_similarity_threshold: float = 0.9

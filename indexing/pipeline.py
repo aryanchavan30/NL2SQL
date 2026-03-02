@@ -53,14 +53,37 @@ class IndexingPipeline:
         self._store_manager.save_all()
         logger.info("Indexing pipeline completed and indices saved.")
 
+    # nomic-embed-text has 8192 token context (~4 chars/token).
+    # Cap at 7000 tokens ≈ 28,000 chars to leave margin.
+    _MAX_EMBED_CHARS = 28_000
+    _EMBED_BATCH_SIZE = 10
+
     async def _embed_documents(self, documents: list[Document]) -> list[Document]:
         if not documents:
             return documents
 
-        contents = [doc.content for doc in documents]
-        embeddings = await self._embeddings.aembed_documents(contents)
+        # Truncate oversized content
+        contents = []
+        for doc in documents:
+            text = doc.content
+            if len(text) > self._MAX_EMBED_CHARS:
+                logger.warning(
+                    "Truncating document for embedding: %s (%d chars -> %d)",
+                    doc.meta.get("name", "?"),
+                    len(text),
+                    self._MAX_EMBED_CHARS,
+                )
+                text = text[: self._MAX_EMBED_CHARS]
+            contents.append(text)
 
-        for doc, emb in zip(documents, embeddings):
+        # Embed in small batches to avoid overwhelming Ollama
+        all_embeddings = []
+        for i in range(0, len(contents), self._EMBED_BATCH_SIZE):
+            batch = contents[i : i + self._EMBED_BATCH_SIZE]
+            batch_embeddings = await self._embeddings.aembed_documents(batch)
+            all_embeddings.extend(batch_embeddings)
+
+        for doc, emb in zip(documents, all_embeddings):
             doc.embedding = emb
 
         return documents
