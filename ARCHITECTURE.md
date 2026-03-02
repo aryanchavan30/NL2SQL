@@ -11,7 +11,8 @@
 2. [Technology Stack](#2-technology-stack)
 3. [Project Structure](#3-project-structure)
 4. [Configuration (`config.py`)](#4-configuration)
-5. [MDL — Model Definition Language (`mdl/schema.py`)](#5-mdl--model-definition-language)
+5. [MDL — Model Definition Language (`mdl/schema.py`)](#5-mdl--model-definition-language) — includes description enrichment
+5b. [Multi-Database Adapter Layer](#5b-multi-database-adapter-layer) — PostgreSQL, MySQL, MSSQL, Snowflake, BigQuery, Databricks
 6. [Vector Store Layer (`indexing/store.py`)](#6-vector-store-layer)
 7. [Indexing Pipeline — What Happens When a New DB Comes](#7-indexing-pipeline--what-happens-when-a-new-db-comes)
 8. [Retrieval Pipelines — Finding Relevant Schema](#8-retrieval-pipelines)
@@ -56,7 +57,7 @@
            |                                          |
            |  GENERATING                              |
            |    1. LLM generates SQL                  |
-           |    2. PostgreSQL EXPLAIN validates        |
+           |    2. Adapter validates (EXPLAIN etc.)    |
            |       ├─ valid → FINISHED                 |
            |       └─ invalid → CORRECTING             |
            |                                          |
@@ -69,7 +70,7 @@
            +--------------------+--------------------+
                                 |
                     +-----------v-----------+
-                    |   Execute SQL on PG    |
+                    |  Execute SQL on DB     |
                     +-----------+-----------+
                                 |
                     +-----------v-----------+
@@ -92,10 +93,10 @@
 
 | Component        | Technology                        | Purpose                                    |
 |------------------|-----------------------------------|--------------------------------------------|
-| LLM              | Groq `llama-3.3-70b-versatile`    | SQL generation, intent classification, correction, NL answers |
+| LLM              | Groq `llama-3.3-70b-versatile`    | SQL generation, intent classification, correction, NL answers, MDL description enrichment |
 | Embeddings       | Ollama `nomic-embed-text` (768d)  | Semantic search for table/question matching |
 | Vector Store     | FAISS (`IndexFlatIP`)             | Similarity search with L2-normalized inner product |
-| Target Database  | PostgreSQL via `asyncpg`          | Execute queries, validate SQL (EXPLAIN)    |
+| Target Database  | Multi-DB via `DatabaseAdapter` ABC | PostgreSQL (`asyncpg`), MySQL (`aiomysql`), MSSQL (`aioodbc`), Snowflake, BigQuery, Databricks |
 | API Framework    | FastAPI                           | REST endpoints with async lifespan         |
 | Schema Validation| Pydantic v2                       | MDL models, API request/response models    |
 | Template Engine  | Jinja2                            | LLM prompt templates                       |
@@ -113,7 +114,16 @@ NL2SQL/
 ├── run.py                       # Interactive CLI (standalone engine)
 │
 ├── mdl/
-│   └── schema.py                # Pydantic models: MDL, Model, Column, Relationship, etc.
+│   ├── schema.py                # Pydantic models: MDL, Model, Column, Relationship, etc.
+│   ├── adapter.py               # DatabaseAdapter ABC, SyncDatabaseAdapter, create_adapter() factory
+│   ├── enrichment.py            # LLM-powered description enrichment (enrich_mdl)
+│   └── adapters/
+│       ├── postgresql.py        # PostgreSQL (asyncpg, EXPLAIN validation)
+│       ├── mysql.py             # MySQL (aiomysql, EXPLAIN validation)
+│       ├── mssql.py             # MSSQL (aioodbc, SET NOEXEC validation)
+│       ├── snowflake.py         # Snowflake (sync driver, EXPLAIN validation)
+│       ├── bigquery.py          # BigQuery (sync driver, dry-run validation)
+│       └── databricks.py        # Databricks (sync driver, EXPLAIN validation)
 │
 ├── indexing/
 │   ├── store.py                 # FAISSStore, FAISSStoreManager, Document dataclass
@@ -130,7 +140,7 @@ NL2SQL/
 │   ├── prompts.py               # All Jinja2 prompt templates
 │   ├── intent.py                # IntentClassifier (TEXT_TO_SQL | MISLEADING | GENERAL)
 │   ├── sql_gen.py               # SQLGenerator
-│   ├── sql_correction.py        # SQLCorrector + SQLValidator
+│   ├── sql_correction.py        # SQLCorrector + SQLValidator (adapter-based)
 │   └── answer.py                # AnswerGenerator (SQL results → NL answer)
 │
 ├── services/
@@ -164,14 +174,19 @@ GROQ_MODEL=llama-3.3-70b-versatile
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_EMBEDDING_MODEL=nomic-embed-text
 EMBEDDING_DIMENSION=768
-PG_HOST=localhost
-PG_PORT=5432
-PG_USER=postgres
-PG_PASSWORD=postgres
-PG_DATABASE=northwind
+DB_TYPE=postgresql            # postgresql | mysql | mssql | snowflake | bigquery | databricks
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_DATABASE=northwind
+DB_SCHEMA=public
+# DB_CONNECTION_STRING=       # Full override for cloud databases
 FAISS_PERSIST_DIR=./faiss_indices
 LOG_LEVEL=INFO
 ```
+
+> Legacy `PG_*` env vars still work as fallback for PostgreSQL.
 
 **Pipeline thresholds (with defaults):**
 
@@ -227,8 +242,64 @@ MDL (root)
 
 **Where MDL comes from:**
 - **`run.py --mdl path/to/mdl.json`** — Load from file
-- **`run.py` (no args)** — Auto-introspects PostgreSQL via `information_schema` queries, builds MDL using `mdl/schema.py` models, saves to `auto_mdl.json`
+- **`run.py` (no args)** — Auto-introspects the database via the appropriate adapter (`mdl/adapters/*.py`), enriches descriptions via LLM (`mdl/enrichment.py`), saves to `mdl/<db_database>_mdl.json`
 - **`POST /v1/semantics-preparations`** — Client sends MDL JSON via API
+
+**MDL Description Enrichment (`mdl/enrichment.py`):**
+
+After introspection, all table descriptions are generic (e.g., `"Table orders"`) and column descriptions are empty. The `enrich_mdl()` function uses the LLM to auto-generate meaningful business-context descriptions:
+
+```
+For each table:
+  1. Fetch 5 sample rows via adapter.execute_sql()
+  2. Collect FK relationships from mdl.relationships
+  3. Build prompt: table name + columns (name/type) + relationships + sample data
+  4. LLM returns JSON: {table_description: "...", columns: {col_name: "..."}}
+  5. Update model.properties["description"] and column.properties["description"]
+```
+
+This runs sequentially (one table at a time) to stay within Groq rate limits. If sample data fetch or LLM call fails for a table, it keeps the generic description and continues.
+
+---
+
+## 5b. Multi-Database Adapter Layer
+
+**Files:** `mdl/adapter.py`, `mdl/adapters/*.py`
+
+The system supports 6 database types via a `DatabaseAdapter` abstract base class:
+
+```
+DatabaseAdapter (ABC)
+├── execute_sql(sql) → (columns, rows)     # Concrete default via SQLAlchemy AsyncEngine
+├── close()                                 # Dispose engine
+├── introspect(schema) → MDL               # Abstract — query information_schema
+├── validate_sql(sql) → (ok, error)        # Abstract — EXPLAIN or equivalent
+└── get_type_map() → dict                  # Abstract — native types → MDL types
+
+SyncDatabaseAdapter(DatabaseAdapter)        # For drivers without async support
+├── Wraps sync SQLAlchemy Engine
+└── Uses asyncio.to_thread() for all blocking calls
+```
+
+### Supported Databases
+
+| Adapter        | File                          | Driver       | Validation Method         | Engine Type |
+|----------------|-------------------------------|-------------|---------------------------|-------------|
+| PostgreSQL     | `adapters/postgresql.py`      | `asyncpg`   | `EXPLAIN <sql>`           | Async       |
+| MySQL          | `adapters/mysql.py`           | `aiomysql`  | `EXPLAIN <sql>`           | Async       |
+| MSSQL          | `adapters/mssql.py`           | `aioodbc`   | `SET NOEXEC ON; <sql>`    | Async       |
+| Snowflake      | `adapters/snowflake.py`       | `snowflake-sqlalchemy` | `EXPLAIN <sql>` | Sync        |
+| BigQuery       | `adapters/bigquery.py`        | `sqlalchemy-bigquery`  | Dry-run (no data scanned) | Sync |
+| Databricks     | `adapters/databricks.py`      | `databricks-sqlalchemy` | `EXPLAIN <sql>` | Sync       |
+
+### Factory
+
+`create_adapter(settings)` in `mdl/adapter.py` reads `settings.db_type` and instantiates the correct adapter subclass with the appropriate SQLAlchemy engine/DSN.
+
+### Configuration
+
+- **Host-based DBs** (PostgreSQL, MySQL, MSSQL): DSN built from `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE`
+- **Cloud DBs** (Snowflake, BigQuery, Databricks): Require `DB_CONNECTION_STRING` (full SQLAlchemy DSN)
 
 ---
 
@@ -503,11 +574,20 @@ Converts the natural language query into SQL.
 
 ### 9.3 SQLValidator
 
-Validates SQL by running `EXPLAIN <sql>` against PostgreSQL.
+Validates SQL via the database adapter's `validate_sql()` method:
 
-- If EXPLAIN succeeds → SQL is syntactically and semantically valid
-- If EXPLAIN fails → returns the error message (e.g., `column "product_nam" does not exist`)
-- No actual data is fetched — just a query plan check
+| Database   | Validation Method              |
+|------------|-------------------------------|
+| PostgreSQL | `EXPLAIN <sql>`               |
+| MySQL      | `EXPLAIN <sql>`               |
+| MSSQL      | `SET NOEXEC ON; <sql>`        |
+| Snowflake  | `EXPLAIN <sql>`               |
+| BigQuery   | Dry-run (no data scanned)     |
+| Databricks | `EXPLAIN <sql>`               |
+
+- If validation succeeds → SQL is syntactically and semantically valid
+- If validation fails → returns the error message (e.g., `column "product_nam" does not exist`)
+- No actual data is fetched — just a plan/syntax check
 
 ### 9.4 SQLCorrector
 
@@ -630,7 +710,7 @@ Manages the MDL indexing lifecycle:
 Orchestrates SQL execution + NL answer generation:
 
 - Accepts `(query, sql)` and optionally pre-computed `sql_data`
-- If no `sql_data` provided: executes SQL against PostgreSQL
+- If no `sql_data` provided: executes SQL via the database adapter
 - Passes results to `AnswerGenerator`
 - Runs as background task, results polled by `query_id`
 
@@ -687,7 +767,7 @@ Startup:
     → ChatGroq(model, api_key, temperature=0)
     → OllamaEmbeddings(base_url, model)
     → FAISSStoreManager(dimension=768) → load_all()
-    → asyncpg.create_pool(min=2, max=10)
+    → create_adapter(settings) → DatabaseAdapter subclass
     → IndexingPipeline(store_manager, embeddings, batch_size=50)
     → HistoricalQuestionRetrieval(threshold=0.9)
     → SqlPairsRetrieval(threshold=0.7, max=10)
@@ -696,16 +776,16 @@ Startup:
     → IntentClassifier(llm)
     → SQLGenerator(llm)
     → SQLCorrector(llm)
-    → SQLValidator(pg_pool)
+    → SQLValidator(adapter)
     → AnswerGenerator(llm)
     → AskService(all retrieval + generation components)
     → SemanticsPreparationService(indexing_pipeline, store_manager)
-    → SqlAnswerService(answer_generator, pg_pool)
+    → SqlAnswerService(answer_generator, adapter)
     → Attach all to app.state.*
 
 Shutdown:
   store_manager.save_all()
-  pg_pool.close()
+  adapter.close()
 ```
 
 ---
@@ -722,21 +802,20 @@ Shutdown:
 [1/5] Initializing LLM (Groq)...
 [2/5] Initializing Embeddings (Ollama)...         # Tests connection
 [3/5] Initializing FAISS stores...                 # Loads from disk
-[4/5] Connecting to PostgreSQL...                  # Tests connection
+[4/5] Connecting to database (postgresql)...       # Tests connection via adapter
 [5/5] Wiring services...                           # Same as main.py
 ```
 
 ### Database auto-introspection (when no --mdl flag)
 
-If no existing index is found, `run.py` introspects PostgreSQL:
+If no existing index is found, `run.py` introspects the database via the appropriate adapter:
 
-1. Queries `information_schema.tables` → get all tables
-2. Queries `information_schema.columns` → get columns per table
-3. Queries `information_schema.table_constraints` → get PKs and FKs
-4. Maps PG types → MDL types via `PG_TYPE_MAP` (e.g., `character varying` → `VARCHAR`)
-5. Builds `MDL` using `mdl/schema.py` Pydantic models
-6. Saves `auto_mdl.json` for future reuse
-7. Runs the full indexing pipeline
+1. `adapter.introspect()` queries `information_schema` (or equivalent) → tables, columns, PKs, FKs
+2. Maps native types → MDL types via adapter's `get_type_map()` (e.g., `character varying` → `VARCHAR`)
+3. Builds `MDL` using `mdl/schema.py` Pydantic models (generic descriptions at this point)
+4. **LLM enrichment** (`mdl/enrichment.py`): for each table, fetches 5 sample rows, asks the LLM to generate business-context descriptions for the table and every column
+5. Saves enriched MDL to `mdl/<db_database>_mdl.json` for future reuse/editing
+6. Runs the full indexing pipeline
 
 ### Interactive commands
 
@@ -847,8 +926,8 @@ User types: "what are the top 5 products by revenue?"
 │  │    → utils/helpers.py: clean_generation_result()
 │  │
 │  │ 6. generation/sql_correction.py: SQLValidator.validate()
-│  │    → Runs: EXPLAIN SELECT p.product_name, SUM(od.unit_price * od.quantity) ...
-│  │    → PostgreSQL says: OK
+│  │    → adapter.validate_sql(): runs EXPLAIN (or equivalent) for the DB type
+│  │    → Database says: OK
 │  │    → is_valid = True
 │  │
 │  │ ── FINISHED ─────────────────────────────────────────────────────
@@ -859,7 +938,7 @@ User types: "what are the top 5 products by revenue?"
 │  │ ── NL ANSWER GENERATION ─────────────────────────────────────────
 │  │
 │  │ 7. run.py: engine.execute_sql(sql)
-│  │    → asyncpg: prepare + fetch
+│  │    → adapter.execute_sql(): runs SQL via SQLAlchemy engine
 │  │    → Returns: (["product_name", "revenue"], [{...}, {...}, ...])
 │  │
 │  │ 8. generation/answer.py: AnswerGenerator.run()
@@ -894,7 +973,7 @@ However, several **implicit mechanisms** provide partial tolerance:
 **Why these work:**
 - **Embedding similarity:** The embedding model (`nomic-embed-text`) produces similar vectors for misspelled words. "custmers" and "customers" will have high cosine similarity, so Phase 1 table discovery still finds the right tables.
 - **LLM intelligence:** The LLM receives the full correct DDL in its prompt. When it sees `CREATE TABLE customers (...)` and the user says "custmers", it maps to the right table.
-- **SQL correction loop:** If the LLM somehow misspells a table/column in the generated SQL, PostgreSQL EXPLAIN catches it with an error like `relation "custmers" does not exist`, and the corrector fixes it.
+- **SQL correction loop:** If the LLM somehow misspells a table/column in the generated SQL, the database adapter's validation catches it with an error like `relation "custmers" does not exist`, and the corrector fixes it.
 
 ### What does NOT work
 
@@ -925,20 +1004,29 @@ However, several **implicit mechanisms** provide partial tolerance:
 | `column_indexing_batch_size` | 50 | Fewer chunks, less granular search | More chunks, slower indexing |
 
 **Performance notes:**
+- LLM enrichment at introspection time adds ~2-5s per table (one LLM call each, sequential for Groq rate limits)
 - Ollama embedding is the indexing bottleneck (sequential per document batch)
 - Groq LLM calls dominate query latency (1-3s each, up to 6 calls: intent + SQL gen + up to 3 corrections + answer)
 - FAISS search is near-instant for typical doc counts (<100k)
-- PostgreSQL EXPLAIN validation is fast (~5ms)
+- SQL validation is fast (~5ms for EXPLAIN, varies by database)
 
 ---
 
 ## 17. Extending the System
 
-### Add a new database
+### Connect a different database
 
-1. Update `.env` with new PG connection details
-2. Run `python run.py` — auto-introspects and indexes
-3. Or provide `--mdl path/to/custom_mdl.json` for fine-tuned schema descriptions
+1. Set `DB_TYPE` and connection details in `.env` (see `.env.example`)
+2. Delete `faiss_indices/` if switching databases
+3. Run `python run.py` — auto-introspects, enriches descriptions via LLM, and indexes
+4. Or provide `--mdl path/to/custom_mdl.json` for fine-tuned schema descriptions
+
+### Add support for a new database engine
+
+1. Create a new adapter in `mdl/adapters/` extending `DatabaseAdapter` (or `SyncDatabaseAdapter` for sync-only drivers)
+2. Implement `introspect()`, `validate_sql()`, and `get_type_map()`
+3. Register it in `mdl/adapter.py:create_adapter()` factory
+4. Add the driver package to `requirements.txt`
 
 ### Add custom SQL rules
 

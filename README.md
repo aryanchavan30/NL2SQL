@@ -69,7 +69,7 @@ User Question
 [3] SQL Generation          ── LLM generates SQL with schema + examples in prompt
      |
      v
-[4] Validation              ── Run EXPLAIN on PostgreSQL
+[4] Validation              ── Validate via database adapter (EXPLAIN, dry-run, etc.)
      |                          - Valid   -> done
      |                          - Invalid -> correction loop (up to 3x)
      v
@@ -89,8 +89,8 @@ User sees: Answer + SQL + Schema used + Tables
 | Service    | What                                           | Setup                                                |
 |------------|------------------------------------------------|------------------------------------------------------|
 | Ollama     | Local embedding model (`nomic-embed-text`)     | Install [Ollama](https://ollama.com), then: `ollama pull nomic-embed-text` |
-| PostgreSQL | Target database to query                       | Any PG instance (tested with Northwind sample DB)    |
-| Groq       | LLM API for SQL generation                     | Sign up at [groq.com](https://console.groq.com), get API key |
+| Database   | Target database to query                       | PostgreSQL, MySQL, MSSQL, Snowflake, BigQuery, or Databricks |
+| Groq       | LLM API for SQL generation + description enrichment | Sign up at [groq.com](https://console.groq.com), get API key |
 | Python     | 3.12+                                          | [python.org](https://www.python.org/downloads/)      |
 
 ---
@@ -112,18 +112,27 @@ pip install -r requirements.txt
 
 ### 2. Configure environment
 
-Create a `.env` file in the `NL2SQL/` directory:
+Copy `.env.example` to `.env` and fill in your values:
+
+```bash
+cp .env.example .env
+```
 
 ```env
 # Required
 GROQ_API_KEY=gsk_your_key_here
 
-# PostgreSQL (adjust to your DB)
-PG_HOST=localhost
-PG_PORT=5432
-PG_USER=postgres
-PG_PASSWORD=postgres
-PG_DATABASE=northwind
+# Database (adjust to your DB)
+DB_TYPE=postgresql          # postgresql | mysql | mssql | snowflake | bigquery | databricks
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_DATABASE=northwind
+DB_SCHEMA=public
+
+# For cloud databases, use a full connection string instead:
+# DB_CONNECTION_STRING=snowflake://user:pass@account/db/schema?warehouse=WH&role=ROLE
 
 # Optional (defaults shown)
 GROQ_MODEL=llama-3.3-70b-versatile
@@ -133,6 +142,8 @@ EMBEDDING_DIMENSION=768
 FAISS_PERSIST_DIR=./faiss_indices
 LOG_LEVEL=INFO
 ```
+
+> **Note:** Legacy `PG_*` env vars (`PG_HOST`, `PG_PORT`, etc.) still work as fallback for PostgreSQL.
 
 ### 3. Start Ollama
 
@@ -150,7 +161,7 @@ ollama pull nomic-embed-text
 python run.py
 ```
 
-On first run, it auto-introspects your PostgreSQL database, builds the schema (MDL), and indexes it. Then you can ask questions.
+On first run, it auto-introspects your database, builds the schema (MDL), enriches table/column descriptions via the LLM, and indexes everything. Then you can ask questions.
 
 **API server:**
 
@@ -372,13 +383,18 @@ All settings are in `config.py` and read from `.env`. Every setting has a sensib
 | `OLLAMA_BASE_URL`        | `http://localhost:11434`    | Ollama server URL               |
 | `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text`          | Embedding model name            |
 | `EMBEDDING_DIMENSION`    | `768`                       | Vector dimensionality           |
-| `PG_HOST`                | `localhost`                 | PostgreSQL host                 |
-| `PG_PORT`                | `5432`                      | PostgreSQL port                 |
-| `PG_USER`                | `postgres`                  | PostgreSQL user                 |
-| `PG_PASSWORD`            | `postgres`                  | PostgreSQL password             |
-| `PG_DATABASE`            | `northwind`                 | PostgreSQL database name        |
+| `DB_TYPE`                | `postgresql`                | Database type (`postgresql`, `mysql`, `mssql`, `snowflake`, `bigquery`, `databricks`) |
+| `DB_HOST`                | `localhost`                 | Database host                   |
+| `DB_PORT`                | `5432`                      | Database port                   |
+| `DB_USER`                | `postgres`                  | Database user                   |
+| `DB_PASSWORD`            | `postgres`                  | Database password               |
+| `DB_DATABASE`            | `northwind`                 | Database name                   |
+| `DB_SCHEMA`              | `public`                    | Schema name (e.g., `public`, `dbo`) |
+| `DB_CONNECTION_STRING`   | *(empty)*                   | Full connection string override (required for Snowflake/BigQuery/Databricks) |
 | `FAISS_PERSIST_DIR`      | `./faiss_indices`           | Directory for persisted indices |
 | `LOG_LEVEL`              | `INFO`                      | Logging level                   |
+
+> **Legacy:** `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE` still work as fallback when `DB_*` vars are not set.
 
 ### Pipeline Tuning
 
@@ -408,7 +424,16 @@ NL2SQL/
 ├── requirements.txt           Python dependencies
 │
 ├── mdl/
-│   └── schema.py              MDL Pydantic models (Model, Column, Relationship, etc.)
+│   ├── schema.py              MDL Pydantic models (Model, Column, Relationship, etc.)
+│   ├── adapter.py             DatabaseAdapter ABC, SyncDatabaseAdapter, create_adapter() factory
+│   ├── enrichment.py          LLM-powered description enrichment for tables and columns
+│   └── adapters/
+│       ├── postgresql.py      PostgreSQL (asyncpg, EXPLAIN validation)
+│       ├── mysql.py           MySQL (aiomysql, EXPLAIN validation)
+│       ├── mssql.py           MSSQL (aioodbc, SET NOEXEC validation)
+│       ├── snowflake.py       Snowflake (sync driver, EXPLAIN validation)
+│       ├── bigquery.py        BigQuery (sync driver, dry-run validation)
+│       └── databricks.py      Databricks (sync driver, EXPLAIN validation)
 │
 ├── indexing/
 │   ├── store.py               FAISSStore, FAISSStoreManager, Document dataclass
@@ -425,7 +450,7 @@ NL2SQL/
 │   ├── prompts.py             All Jinja2 prompt templates
 │   ├── intent.py              Intent classifier (TEXT_TO_SQL / MISLEADING / GENERAL)
 │   ├── sql_gen.py             SQL generator
-│   ├── sql_correction.py      SQL corrector + validator (PostgreSQL EXPLAIN)
+│   ├── sql_correction.py      SQL corrector + validator (adapter-based)
 │   └── answer.py              NL answer generator (SQL results -> plain English)
 │
 ├── services/
@@ -441,20 +466,58 @@ NL2SQL/
 │   └── helpers.py             DDL builders, score filtering, text cleaners
 │
 ├── faiss_indices/             Persisted FAISS indices (auto-created)
-├── auto_mdl.json              Auto-generated MDL from DB introspection
 └── ARCHITECTURE.md            Detailed architecture documentation
 ```
 
 ---
 
-## Connecting a New Database
+## Connecting a Database
+
+The system supports **6 database types**: PostgreSQL, MySQL, MSSQL, Snowflake, BigQuery, and Databricks.
 
 ### Option A: Auto-introspection (easiest)
 
-1. Update `.env` with your PostgreSQL connection details
+1. Set `DB_TYPE` and connection details in `.env`:
+   ```env
+   # PostgreSQL example
+   DB_TYPE=postgresql
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=postgres
+   DB_PASSWORD=postgres
+   DB_DATABASE=northwind
+   DB_SCHEMA=public
+
+   # MySQL example
+   DB_TYPE=mysql
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_USER=root
+   DB_PASSWORD=secret
+   DB_DATABASE=northwind
+   DB_SCHEMA=northwind    # MySQL uses database name as schema
+
+   # Snowflake example (requires full connection string)
+   DB_TYPE=snowflake
+   DB_CONNECTION_STRING=snowflake://user:pass@account/db/schema?warehouse=WH&role=ROLE
+   DB_SCHEMA=PUBLIC
+   ```
 2. Delete `faiss_indices/` if switching databases
-3. Run `python run.py` — it introspects `information_schema` automatically
-4. Generates `auto_mdl.json` you can edit and reload later
+3. Run `python run.py` — it introspects the database automatically, then **enriches** all table and column descriptions via the LLM
+4. Generates `mdl/<db_database>_mdl.json` (e.g., `mdl/northwind_mdl.json`) with enriched descriptions — you can edit and reload later
+
+#### What happens during auto-introspection
+
+```
+1. Adapter queries information_schema (or equivalent) for tables, columns, PKs, FKs
+2. Builds raw MDL with generic descriptions ("Table orders", empty column descriptions)
+3. LLM enrichment: for each table, fetches 5 sample rows, asks the LLM to generate
+   meaningful business-context descriptions for the table and every column
+4. Saves enriched MDL to mdl/<db_database>_mdl.json
+5. Indexes the enriched MDL into FAISS for semantic search
+```
+
+This enrichment step dramatically improves retrieval quality — e.g., "highest selling product" correctly retrieves `products` + `order_details` instead of 10 irrelevant tables.
 
 ### Option B: Custom MDL file
 
@@ -471,9 +534,9 @@ Create a JSON file describing your schema:
       "tableReference": "public.users",
       "primaryKey": "id",
       "columns": [
-        {"name": "id", "type": "INTEGER"},
-        {"name": "email", "type": "VARCHAR"},
-        {"name": "created_at", "type": "TIMESTAMP"}
+        {"name": "id", "type": "INTEGER", "properties": {"description": "Unique user identifier"}},
+        {"name": "email", "type": "VARCHAR", "properties": {"description": "User email address"}},
+        {"name": "created_at", "type": "TIMESTAMP", "properties": {"description": "Account creation timestamp"}}
       ],
       "properties": {
         "displayName": "Users",
@@ -494,7 +557,7 @@ Create a JSON file describing your schema:
 }
 ```
 
-Good descriptions in `properties.description` significantly improve retrieval accuracy. The system searches these descriptions to find relevant tables for each question.
+Good descriptions in `properties.description` (on both models and columns) significantly improve retrieval accuracy. When using auto-introspection, these are generated automatically by the LLM. When providing a custom MDL, write them yourself.
 
 Load it:
 
@@ -565,13 +628,13 @@ Each document's text content is embedded via Ollama (`nomic-embed-text`, 768 dim
 - Enforces rules: SELECT only, quoted identifiers, case-insensitive comparisons, CTEs over subqueries, etc.
 
 **5. Validation + Correction**
-- Runs `EXPLAIN <sql>` on PostgreSQL
+- Validates SQL via the database adapter (EXPLAIN for PostgreSQL/MySQL/Snowflake/Databricks, SET NOEXEC for MSSQL, dry-run for BigQuery)
 - If valid, done
 - If invalid, LLM corrects the SQL using the error message
 - Retries up to 3 times
 
 **6. NL Answer Generation**
-- Executes the valid SQL on PostgreSQL
+- Executes the valid SQL on the database
 - Truncates results to fit token budget (~6,000 tokens for data, max 50 rows)
 - LLM summarizes results in plain English Markdown for non-technical users
 
@@ -608,17 +671,21 @@ ollama pull nomic-embed-text
 curl http://localhost:11434/api/embeddings -d '{"model": "nomic-embed-text", "prompt": "test"}'
 ```
 
-### "Cannot connect to PostgreSQL"
+### "Cannot connect to database"
 
-Check your `.env` matches your PG setup:
+Check your `.env` matches your DB setup. For PostgreSQL:
 
 ```bash
 psql -h localhost -p 5432 -U postgres -d northwind -c "SELECT 1"
 ```
 
+For other databases, verify `DB_TYPE`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` (or `DB_CONNECTION_STRING` for cloud DBs).
+
 ### Wrong tables retrieved
 
-The system finds tables by semantic similarity of their descriptions. Improve retrieval by editing `auto_mdl.json` and adding better descriptions:
+The system finds tables by semantic similarity of their descriptions. With auto-introspection, the LLM enrichment step generates descriptions automatically, which usually gives good results.
+
+If you still need to tune, edit `mdl/<db_database>_mdl.json` and improve descriptions:
 
 ```json
 {
@@ -630,7 +697,7 @@ The system finds tables by semantic similarity of their descriptions. Improve re
 }
 ```
 
-Then reload: `python run.py --mdl auto_mdl.json`
+Then reload: `python run.py --mdl mdl/northwind_mdl.json`
 
 ### SQL generation errors
 

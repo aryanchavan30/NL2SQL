@@ -47,6 +47,7 @@ class NL2SQLEngine:
         self.settings = Settings()
         self.store_manager = None
         self.adapter = None
+        self.llm: ChatGroq | None = None
         self.ask_service: AskService | None = None
         self.semantics_service: SemanticsPreparationService | None = None
         self.answer_generator: AnswerGenerator | None = None
@@ -64,6 +65,7 @@ class NL2SQLEngine:
             model=s.groq_model,
             temperature=0,
         )
+        self.llm = llm
 
         print("[2/5] Initializing Embeddings (Ollama)...")
         embeddings = OllamaEmbeddings(
@@ -193,12 +195,18 @@ class NL2SQLEngine:
         """Auto-introspect database and build MDL via the adapter."""
         print("\nIntrospecting database to build MDL...")
         mdl = await self.adapter.introspect(schema=self.settings.db_schema)
-        self._current_mdl = mdl
 
         print(f"  Built MDL with {len(mdl.models)} models, {len(mdl.relationships)} relationships:")
         for m in mdl.models:
             print(f"    - {m.name} ({len(m.columns)} columns, pk={m.primaryKey})")
-        print()
+
+        # Enrich descriptions via LLM
+        from mdl.enrichment import enrich_mdl
+
+        mdl = await enrich_mdl(
+            mdl, self.adapter, self.llm, db_type=self.settings.db_type,
+        )
+        self._current_mdl = mdl
 
         # Save MDL JSON for reference/reuse
         mdl_json = mdl.model_dump_json(by_alias=True, indent=2)
