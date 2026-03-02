@@ -217,15 +217,44 @@ class NL2SQLEngine:
 
     async def _run_indexing(self, mdl_json: str):
         """Run indexing via SemanticsPreparationService (same as API route)."""
+        from tqdm import tqdm
+
         print("Indexing...", flush=True)
         start = time.time()
+
+        # Progress bar state
+        _pbar: tqdm | None = None
+        _current_stage: str | None = None
+
+        def _on_progress(stage: str, done: int, total: int):
+            nonlocal _pbar, _current_stage
+            if stage != _current_stage:
+                # Close previous bar
+                if _pbar is not None:
+                    _pbar.close()
+                    _pbar = None
+                _current_stage = stage
+                if total > 0:
+                    _pbar = tqdm(
+                        total=total, desc=f"  {stage}",
+                        unit="docs", leave=True, ncols=72,
+                        bar_format="  {desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]",
+                    )
+                else:
+                    print(f"  {stage}: 0 docs (skipped)")
+            if _pbar is not None and done > _pbar.n:
+                _pbar.update(done - _pbar.n)
 
         mdl_hash = hashlib.md5(mdl_json.encode()).hexdigest()
         await self.semantics_service.prepare(
             mdl_json=mdl_json,
             mdl_hash=mdl_hash,
             project_id="default",
+            on_progress=_on_progress,
         )
+
+        if _pbar is not None:
+            _pbar.close()
 
         status = self.semantics_service.get_status(mdl_hash)
         elapsed = time.time() - start

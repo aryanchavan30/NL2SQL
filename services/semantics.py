@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 from cachetools import TTLCache
 
-from indexing.pipeline import IndexingPipeline
+from indexing.pipeline import IndexingPipeline, ProgressCallback
 from indexing.store import FAISSStoreManager
 
 logger = logging.getLogger("nl2sql")
@@ -31,6 +31,7 @@ class SemanticsPreparationService:
         mdl_hash: str,
         project_id: Optional[str] = None,
         sql_pairs: Optional[list[dict[str, str]]] = None,
+        on_progress: Optional[ProgressCallback] = None,
     ):
         self._statuses[mdl_hash] = {"status": "indexing"}
 
@@ -39,6 +40,7 @@ class SemanticsPreparationService:
                 mdl_str=mdl_json,
                 project_id=project_id,
                 sql_pairs=sql_pairs,
+                on_progress=on_progress,
             )
             self._statuses[mdl_hash] = {"status": "finished"}
             logger.info(f"Semantics preparation finished for mdl_hash={mdl_hash}")
