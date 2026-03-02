@@ -1,7 +1,6 @@
 import logging
 from typing import Any, Optional
 
-import asyncpg
 import orjson
 from jinja2 import Template
 from langchain_groq import ChatGroq
@@ -16,18 +15,13 @@ logger = logging.getLogger("nl2sql")
 
 
 class SQLValidator:
-    """Validates SQL against PostgreSQL using EXPLAIN."""
+    """Validates SQL via the configured DatabaseAdapter."""
 
-    def __init__(self, pg_pool: asyncpg.Pool):
-        self._pool = pg_pool
+    def __init__(self, adapter):
+        self._adapter = adapter
 
     async def validate(self, sql: str) -> tuple[bool, str]:
-        try:
-            async with self._pool.acquire() as conn:
-                await conn.execute(f"EXPLAIN {sql}")
-                return True, ""
-        except Exception as e:
-            return False, str(e)
+        return await self._adapter.validate_sql(sql)
 
 
 class SQLCorrector:

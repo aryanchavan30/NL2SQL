@@ -3,7 +3,6 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-import asyncpg
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +20,7 @@ from generation.answer import AnswerGenerator
 from generation.sql_gen import SQLGenerator
 from indexing.pipeline import IndexingPipeline
 from indexing.store import FAISSStoreManager
+from mdl.adapter import create_adapter
 from retrieval.db_schema import DBSchemaRetrieval
 from retrieval.historical import HistoricalQuestionRetrieval
 from retrieval.instructions import InstructionsRetrieval
@@ -65,17 +65,9 @@ async def lifespan(app: FastAPI):
     store_manager.load_all()
     logger.info("FAISS stores loaded")
 
-    # Init PostgreSQL pool
-    pg_pool = await asyncpg.create_pool(
-        host=settings.pg_host,
-        port=settings.pg_port,
-        user=settings.pg_user,
-        password=settings.pg_password,
-        database=settings.pg_database,
-        min_size=2,
-        max_size=10,
-    )
-    logger.info("PostgreSQL connection pool created")
+    # Init database adapter
+    adapter = create_adapter(settings)
+    logger.info(f"Database adapter created: {settings.db_type}")
 
     # Init indexing pipeline
     indexing_pipeline = IndexingPipeline(
@@ -113,7 +105,7 @@ async def lifespan(app: FastAPI):
     intent_classifier = IntentClassifier(llm=llm)
     sql_generator = SQLGenerator(llm=llm)
     sql_corrector = SQLCorrector(llm=llm)
-    sql_validator = SQLValidator(pg_pool=pg_pool)
+    sql_validator = SQLValidator(adapter=adapter)
 
     # Init services
     ask_service = AskService(
@@ -140,7 +132,7 @@ async def lifespan(app: FastAPI):
     answer_generator = AnswerGenerator(llm=llm)
     sql_answer_service = SqlAnswerService(
         answer_generator=answer_generator,
-        pg_pool=pg_pool,
+        adapter=adapter,
         cache_maxsize=settings.ask_cache_maxsize,
         cache_ttl=settings.ask_cache_ttl,
     )
@@ -150,7 +142,7 @@ async def lifespan(app: FastAPI):
     app.state.ask_service = ask_service
     app.state.semantics_service = semantics_service
     app.state.sql_answer_service = sql_answer_service
-    app.state.pg_pool = pg_pool
+    app.state.adapter = adapter
     app.state.store_manager = store_manager
 
     logger.info("All services initialized. Ready to serve requests.")
@@ -160,7 +152,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down NL2SQL service...")
     store_manager.save_all()
-    await pg_pool.close()
+    await adapter.close()
     logger.info("Shutdown complete.")
 
 

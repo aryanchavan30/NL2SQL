@@ -3,7 +3,6 @@ import logging
 import uuid
 from typing import Any, Optional
 
-import asyncpg
 from cachetools import TTLCache
 
 from generation.answer import AnswerGenerator
@@ -17,12 +16,12 @@ class SqlAnswerService:
     def __init__(
         self,
         answer_generator: AnswerGenerator,
-        pg_pool: asyncpg.Pool,
+        adapter,
         cache_maxsize: int = 1_000_000,
         cache_ttl: int = 120,
     ):
         self._answer_generator = answer_generator
-        self._pg_pool = pg_pool
+        self._adapter = adapter
         self._results: dict[str, dict] = TTLCache(
             maxsize=cache_maxsize, ttl=cache_ttl
         )
@@ -61,7 +60,7 @@ class SqlAnswerService:
                 columns = sql_data["columns"]
                 rows = sql_data["data"]
             else:
-                columns, rows = await self._execute_sql(sql)
+                columns, rows = await self._adapter.execute_sql(sql)
 
             # 2. Generate NL answer
             result = await self._answer_generator.run(
@@ -93,19 +92,6 @@ class SqlAnswerService:
                 "failed",
                 error={"code": "OTHERS", "message": str(e)},
             )
-
-    async def _execute_sql(self, sql: str) -> tuple[list[str], list[dict]]:
-        """Execute SQL against PG and return (columns, rows)."""
-        async with self._pg_pool.acquire() as conn:
-            stmt = await conn.prepare(sql)
-            records = await stmt.fetch()
-
-            if not records:
-                return [], []
-
-            columns = [a.name for a in stmt.get_attributes()]
-            rows = [dict(r) for r in records]
-            return columns, rows
 
     def get_result(self, query_id: str) -> dict[str, Any]:
         result = self._results.get(query_id)

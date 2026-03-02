@@ -16,7 +16,6 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import asyncpg
 from langchain_groq import ChatGroq
 from langchain_ollama import OllamaEmbeddings
 
@@ -27,33 +26,14 @@ from generation.sql_correction import SQLCorrector, SQLValidator
 from generation.sql_gen import SQLGenerator
 from indexing.pipeline import IndexingPipeline
 from indexing.store import FAISSStoreManager
-from mdl.schema import MDL, Column, Model, Relationship
+from mdl.adapter import create_adapter
+from mdl.schema import MDL
 from retrieval.db_schema import DBSchemaRetrieval
 from retrieval.historical import HistoricalQuestionRetrieval
 from retrieval.instructions import InstructionsRetrieval
 from retrieval.sql_pairs import SqlPairsRetrieval
 from services.ask import AskService
 from services.semantics import SemanticsPreparationService
-
-
-PG_TYPE_MAP = {
-    "integer": "INTEGER",
-    "smallint": "SMALLINT",
-    "bigint": "BIGINT",
-    "real": "FLOAT",
-    "double precision": "DOUBLE",
-    "numeric": "NUMERIC",
-    "character varying": "VARCHAR",
-    "character": "VARCHAR",
-    "text": "TEXT",
-    "boolean": "BOOLEAN",
-    "date": "DATE",
-    "timestamp without time zone": "TIMESTAMP",
-    "timestamp with time zone": "TIMESTAMP",
-    "bytea": "BYTEA",
-    "json": "JSON",
-    "jsonb": "JSON",
-}
 
 
 class NL2SQLEngine:
@@ -66,7 +46,7 @@ class NL2SQLEngine:
     def __init__(self):
         self.settings = Settings()
         self.store_manager = None
-        self.pg_pool = None
+        self.adapter = None
         self.ask_service: AskService | None = None
         self.semantics_service: SemanticsPreparationService | None = None
         self.answer_generator: AnswerGenerator | None = None
@@ -106,22 +86,14 @@ class NL2SQLEngine:
         )
         self.store_manager.load_all()
 
-        print("[4/5] Connecting to PostgreSQL...")
+        print(f"[4/5] Connecting to database ({s.db_type})...")
         try:
-            self.pg_pool = await asyncpg.create_pool(
-                host=s.pg_host,
-                port=s.pg_port,
-                user=s.pg_user,
-                password=s.pg_password,
-                database=s.pg_database,
-                min_size=2,
-                max_size=5,
-            )
-            async with self.pg_pool.acquire() as conn:
-                version = await conn.fetchval("SELECT version()")
-                print(f"  Connected: {version[:60]}...")
+            self.adapter = create_adapter(s)
+            # Quick connectivity check
+            await self.adapter.execute_sql("SELECT 1")
+            print(f"  Connected to {s.db_type}: {s.db_host}:{s.db_port}/{s.db_database}")
         except Exception as e:
-            print(f"\n  ERROR: Cannot connect to PostgreSQL at {s.pg_host}:{s.pg_port}/{s.pg_database}")
+            print(f"\n  ERROR: Cannot connect to {s.db_type} at {s.db_host}:{s.db_port}/{s.db_database}")
             print(f"  Error: {e}")
             sys.exit(1)
 
@@ -162,7 +134,7 @@ class NL2SQLEngine:
         sql_generator = SQLGenerator(llm=llm)
         self.answer_generator = AnswerGenerator(llm=llm)
         sql_corrector = SQLCorrector(llm=llm)
-        sql_validator = SQLValidator(pg_pool=self.pg_pool)
+        sql_validator = SQLValidator(adapter=self.adapter)
 
         # ── Wire AskService (identical to main.py) ──────────────────────────
         self.ask_service = AskService(
@@ -218,103 +190,9 @@ class NL2SQLEngine:
         await self._run_indexing(mdl_json)
 
     async def index_from_db(self):
-        """Auto-introspect PostgreSQL and build MDL using mdl/schema.py models."""
+        """Auto-introspect database and build MDL via the adapter."""
         print("\nIntrospecting database to build MDL...")
-        async with self.pg_pool.acquire() as conn:
-            # Get all tables
-            table_rows = await conn.fetch("""
-                SELECT table_name
-                FROM information_schema.tables
-                WHERE table_schema = 'public'
-                  AND table_type = 'BASE TABLE'
-                ORDER BY table_name
-            """)
-
-            models = []
-            for table_row in table_rows:
-                table_name = table_row["table_name"]
-
-                # Get columns
-                col_rows = await conn.fetch("""
-                    SELECT column_name, data_type, is_nullable, column_default
-                    FROM information_schema.columns
-                    WHERE table_schema = 'public' AND table_name = $1
-                    ORDER BY ordinal_position
-                """, table_name)
-
-                # Get primary key
-                pk_rows = await conn.fetch("""
-                    SELECT kcu.column_name
-                    FROM information_schema.table_constraints tc
-                    JOIN information_schema.key_column_usage kcu
-                      ON tc.constraint_name = kcu.constraint_name
-                    WHERE tc.table_schema = 'public'
-                      AND tc.table_name = $1
-                      AND tc.constraint_type = 'PRIMARY KEY'
-                """, table_name)
-
-                pk_col = pk_rows[0]["column_name"] if pk_rows else ""
-
-                # Build Column objects using mdl/schema.py
-                columns = [
-                    Column(
-                        name=c["column_name"],
-                        type=PG_TYPE_MAP.get(c["data_type"], c["data_type"].upper()),
-                        properties={"description": ""},
-                    )
-                    for c in col_rows
-                ]
-
-                # Build Model object using mdl/schema.py
-                models.append(Model(
-                    name=table_name,
-                    tableReference=f"public.{table_name}",
-                    primaryKey=pk_col,
-                    columns=columns,
-                    properties={
-                        "displayName": table_name.replace("_", " ").title(),
-                        "description": f"Table {table_name}",
-                    },
-                ))
-
-            # Get foreign key relationships
-            fk_rows = await conn.fetch("""
-                SELECT
-                    tc.constraint_name,
-                    tc.table_name AS source_table,
-                    kcu.column_name AS source_column,
-                    ccu.table_name AS target_table,
-                    ccu.column_name AS target_column
-                FROM information_schema.table_constraints tc
-                JOIN information_schema.key_column_usage kcu
-                  ON tc.constraint_name = kcu.constraint_name
-                JOIN information_schema.constraint_column_usage ccu
-                  ON tc.constraint_name = ccu.constraint_name
-                WHERE tc.constraint_type = 'FOREIGN KEY'
-                  AND tc.table_schema = 'public'
-            """)
-
-            # Build Relationship objects using mdl/schema.py
-            relationships = [
-                Relationship(
-                    name=fk["constraint_name"],
-                    models=[fk["source_table"], fk["target_table"]],
-                    joinType="MANY_TO_ONE",
-                    condition=f"{fk['source_table']}.{fk['source_column']} = {fk['target_table']}.{fk['target_column']}",
-                )
-                for fk in fk_rows
-            ]
-
-        # Build the full MDL using mdl/schema.py
-        mdl = MDL(
-            catalog="postgresql",
-            schema="public",
-            dataSource="postgresql",
-            models=models,
-            relationships=relationships,
-            metrics=[],
-            views=[],
-        )
+        mdl = await self.adapter.introspect(schema=self.settings.db_schema)
         self._current_mdl = mdl
 
         print(f"  Built MDL with {len(mdl.models)} models, {len(mdl.relationships)} relationships:")
@@ -324,7 +202,9 @@ class NL2SQLEngine:
 
         # Save MDL JSON for reference/reuse
         mdl_json = mdl.model_dump_json(by_alias=True, indent=2)
-        mdl_path = os.path.join(os.path.dirname(__file__), "auto_mdl.json")
+        mdl_dir = os.path.join(os.path.dirname(__file__), "mdl")
+        os.makedirs(mdl_dir, exist_ok=True)
+        mdl_path = os.path.join(mdl_dir, f"{self.settings.db_database}_mdl.json")
         with open(mdl_path, "w") as f:
             f.write(mdl_json)
         print(f"  MDL saved to: {mdl_path}")
@@ -392,14 +272,7 @@ class NL2SQLEngine:
 
     async def execute_sql(self, sql: str) -> tuple[list[str], list[dict]]:
         """Execute SQL and return (columns, rows)."""
-        async with self.pg_pool.acquire() as conn:
-            stmt = await conn.prepare(sql)
-            records = await stmt.fetch()
-            if not records:
-                return [], []
-            columns = [a.name for a in stmt.get_attributes()]
-            rows = [dict(r) for r in records]
-            return columns, rows
+        return await self.adapter.execute_sql(sql)
 
     async def generate_answer(
         self, query: str, sql: str, columns: list[str], rows: list[dict]
@@ -411,8 +284,8 @@ class NL2SQLEngine:
 
     async def shutdown(self):
         self.store_manager.save_all()
-        if self.pg_pool:
-            await self.pg_pool.close()
+        if self.adapter:
+            await self.adapter.close()
 
 
 # ── Display Helpers ─────────────────────────────────────────────────────────

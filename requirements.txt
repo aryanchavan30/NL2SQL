@@ -8,10 +8,18 @@ langchain-ollama>=0.2.0
 langchain-community>=0.3.0
 langchain-core>=0.3.0
 faiss-cpu>=1.8.0
-asyncpg>=0.29.0
 jinja2>=3.1.0
 orjson>=3.10.0
 cachetools>=5.4.0
 haystack-ai>=2.6.0
 sf-hamilton[async]>=1.73.0
 tqdm>=4.66.0
+
+# Database — SQLAlchemy + async/sync drivers
+sqlalchemy[asyncio]>=2.0.0
+asyncpg>=0.29.0
+aiomysql>=0.2.0
+aioodbc>=0.5.0
+snowflake-sqlalchemy>=1.5.0
+sqlalchemy-bigquery>=1.9.0
+databricks-sqlalchemy>=1.0.0

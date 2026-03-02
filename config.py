@@ -1,3 +1,6 @@
+from urllib.parse import quote_plus
+
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,12 +20,15 @@ class Settings(BaseSettings):
     ollama_embedding_model: str = "nomic-embed-text"
     embedding_dimension: int = 768
 
-    # PostgreSQL
-    pg_host: str = "localhost"
-    pg_port: int = 5432
-    pg_user: str = "postgres"
-    pg_password: str = "postgres"
-    pg_database: str = "northwind"
+    # Database — generic, multi-DB settings
+    db_type: str = "postgresql"  # postgresql | mysql | mssql | snowflake | bigquery | databricks
+    db_host: str = "localhost"
+    db_port: int = 5432
+    db_user: str = "postgres"
+    db_password: str = "postgres"
+    db_database: str = "northwind"
+    db_schema: str = "public"
+    db_connection_string: str = ""  # Full override (required for snowflake/bigquery/databricks)
 
     # FAISS
     faiss_persist_dir: str = "./faiss_indices"
@@ -45,6 +51,31 @@ class Settings(BaseSettings):
     ask_cache_maxsize: int = 1_000_000
     ask_cache_ttl: int = 120
 
+    @model_validator(mode="before")
+    @classmethod
+    def _backward_compat_pg_vars(cls, values: dict) -> dict:
+        """Map old PG_* env vars to new db_* fields as fallback."""
+        mapping = {
+            "pg_host": "db_host",
+            "pg_port": "db_port",
+            "pg_user": "db_user",
+            "pg_password": "db_password",
+            "pg_database": "db_database",
+        }
+        for old, new in mapping.items():
+            if old in values and new not in values:
+                values[new] = values[old]
+        return values
+
     @property
-    def pg_dsn(self) -> str:
-        return f"postgresql://{self.pg_user}:{self.pg_password}@{self.pg_host}:{self.pg_port}/{self.pg_database}"
+    def db_dsn(self) -> str:
+        if self.db_connection_string:
+            return self.db_connection_string
+        driver_map = {
+            "postgresql": "postgresql+asyncpg",
+            "mysql": "mysql+aiomysql",
+            "mssql": "mssql+aioodbc",
+        }
+        driver = driver_map.get(self.db_type, "postgresql+asyncpg")
+        password = quote_plus(self.db_password)
+        return f"{driver}://{self.db_user}:{password}@{self.db_host}:{self.db_port}/{self.db_database}"
