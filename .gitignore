@@ -1,5 +1,5 @@
 .env
-faiss_index
-.venv
-__pycache__
-faiss_indices
+.venv/
+__pycache__/
+faiss_indices/
+*.pyc
