@@ -1,0 +1,3259 @@
+{
+  "catalog": "postgresql",
+  "schema": "public",
+  "dataSource": "postgresql",
+  "models": [
+    {
+      "name": "addresses",
+      "tableReference": "public.addresses",
+      "columns": [
+        {
+          "name": "address_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique address identifier"
+          }
+        },
+        {
+          "name": "street_line1",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "First line of street address"
+          }
+        },
+        {
+          "name": "street_line2",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Second line of street address"
+          }
+        },
+        {
+          "name": "city_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Identifier of the city"
+          }
+        },
+        {
+          "name": "postal_code",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Postal code of the address"
+          }
+        },
+        {
+          "name": "is_default",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Indicates if address is default"
+          }
+        }
+      ],
+      "primaryKey": "address_id",
+      "properties": {
+        "displayName": "Addresses",
+        "description": "Stores physical addresses"
+      }
+    },
+    {
+      "name": "analytics_events",
+      "tableReference": "public.analytics_events",
+      "columns": [
+        {
+          "name": "event_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique event identifier"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User who triggered the event"
+          }
+        },
+        {
+          "name": "session_id",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Session identifier"
+          }
+        },
+        {
+          "name": "event_type",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Type of event occurred"
+          }
+        },
+        {
+          "name": "page",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Page where event occurred"
+          }
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product related to the event"
+          }
+        },
+        {
+          "name": "metadata",
+          "type": "JSON",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Additional event details"
+          }
+        },
+        {
+          "name": "occurred_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Event timestamp"
+          }
+        }
+      ],
+      "primaryKey": "event_id",
+      "properties": {
+        "displayName": "Analytics Events",
+        "description": "Stores user interaction events"
+      }
+    },
+    {
+      "name": "audit_log",
+      "tableReference": "public.audit_log",
+      "columns": [
+        {
+          "name": "log_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique log entry id"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User who made the change"
+          }
+        },
+        {
+          "name": "action",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Type of action performed"
+          }
+        },
+        {
+          "name": "table_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Table where change occurred"
+          }
+        },
+        {
+          "name": "record_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Id of changed record"
+          }
+        },
+        {
+          "name": "old_values",
+          "type": "JSON",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Previous record values"
+          }
+        },
+        {
+          "name": "new_values",
+          "type": "JSON",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "New record values"
+          }
+        },
+        {
+          "name": "ip_address",
+          "type": "INET",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User's ip address"
+          }
+        },
+        {
+          "name": "occurred_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Timestamp of change"
+          }
+        }
+      ],
+      "primaryKey": "log_id",
+      "properties": {
+        "displayName": "Audit Log",
+        "description": "Stores system change history"
+      }
+    },
+    {
+      "name": "brands",
+      "tableReference": "public.brands",
+      "columns": [
+        {
+          "name": "brand_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique brand identifier"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Brand name"
+          }
+        },
+        {
+          "name": "website",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Brand website"
+          }
+        },
+        {
+          "name": "logo_url",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Brand logo URL"
+          }
+        },
+        {
+          "name": "country_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Country of origin"
+          }
+        }
+      ],
+      "primaryKey": "brand_id",
+      "properties": {
+        "displayName": "Brands",
+        "description": "Stores brand information"
+      }
+    },
+    {
+      "name": "cart_items",
+      "tableReference": "public.cart_items",
+      "columns": [
+        {
+          "name": "cart_item_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique item identifier"
+          }
+        },
+        {
+          "name": "cart_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Cart that item belongs to"
+          }
+        },
+        {
+          "name": "variant_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product variant in cart"
+          }
+        },
+        {
+          "name": "qty",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Quantity of item"
+          }
+        },
+        {
+          "name": "added_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Time item was added"
+          }
+        }
+      ],
+      "primaryKey": "cart_item_id",
+      "properties": {
+        "displayName": "Cart Items",
+        "description": "Stores items in a shopping cart"
+      }
+    },
+    {
+      "name": "carts",
+      "tableReference": "public.carts",
+      "columns": [
+        {
+          "name": "cart_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique cart identifier"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User who owns the cart"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Cart creation time"
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Cart last update time"
+          }
+        }
+      ],
+      "primaryKey": "cart_id",
+      "properties": {
+        "displayName": "Carts",
+        "description": "Stores user shopping carts"
+      }
+    },
+    {
+      "name": "categories",
+      "tableReference": "public.categories",
+      "columns": [
+        {
+          "name": "category_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique category identifier"
+          }
+        },
+        {
+          "name": "parent_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Parent category identifier"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Category name"
+          }
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Category URL slug"
+          }
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Category description"
+          }
+        }
+      ],
+      "primaryKey": "category_id",
+      "properties": {
+        "displayName": "Categories",
+        "description": "Stores product categories"
+      }
+    },
+    {
+      "name": "cities",
+      "tableReference": "public.cities",
+      "columns": [
+        {
+          "name": "city_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique city identifier"
+          }
+        },
+        {
+          "name": "region_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Region where city is located"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "City name"
+          }
+        },
+        {
+          "name": "zip_code",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "City zip code"
+          }
+        }
+      ],
+      "primaryKey": "city_id",
+      "properties": {
+        "displayName": "Cities",
+        "description": "Stores city information"
+      }
+    },
+    {
+      "name": "countries",
+      "tableReference": "public.countries",
+      "columns": [
+        {
+          "name": "country_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique country identifier"
+          }
+        },
+        {
+          "name": "code",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Country code"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Country name"
+          }
+        },
+        {
+          "name": "phone_prefix",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Country phone prefix"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Creation timestamp"
+          }
+        }
+      ],
+      "primaryKey": "country_id",
+      "properties": {
+        "displayName": "Countries",
+        "description": "Stores country information"
+      }
+    },
+    {
+      "name": "coupons",
+      "tableReference": "public.coupons",
+      "columns": [
+        {
+          "name": "coupon_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique coupon identifier"
+          }
+        },
+        {
+          "name": "code",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Coupon code"
+          }
+        },
+        {
+          "name": "discount_type",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Type of discount"
+          }
+        },
+        {
+          "name": "discount_value",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Discount amount"
+          }
+        },
+        {
+          "name": "min_order_amt",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Minimum order amount"
+          }
+        },
+        {
+          "name": "max_uses",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Maximum uses allowed"
+          }
+        },
+        {
+          "name": "used_count",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Number of times used"
+          }
+        },
+        {
+          "name": "expires_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Coupon expiration date"
+          }
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Coupon status"
+          }
+        }
+      ],
+      "primaryKey": "coupon_id",
+      "properties": {
+        "displayName": "Coupons",
+        "description": "Stores coupon information"
+      }
+    },
+    {
+      "name": "email_templates",
+      "tableReference": "public.email_templates",
+      "columns": [
+        {
+          "name": "template_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique template identifier"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Template name"
+          }
+        },
+        {
+          "name": "subject",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Email subject line"
+          }
+        },
+        {
+          "name": "body_html",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Email body content"
+          }
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Template status"
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Last update timestamp"
+          }
+        }
+      ],
+      "primaryKey": "template_id",
+      "properties": {
+        "displayName": "Email Templates",
+        "description": "Stores email templates for various scenarios"
+      }
+    },
+    {
+      "name": "inventory",
+      "tableReference": "public.inventory",
+      "columns": [
+        {
+          "name": "inventory_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique inventory identifier"
+          }
+        },
+        {
+          "name": "variant_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product variant ID"
+          }
+        },
+        {
+          "name": "warehouse_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Warehouse location ID"
+          }
+        },
+        {
+          "name": "qty_on_hand",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Available quantity"
+          }
+        },
+        {
+          "name": "qty_reserved",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Quantity reserved"
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Last update timestamp"
+          }
+        }
+      ],
+      "primaryKey": "inventory_id",
+      "properties": {
+        "displayName": "Inventory",
+        "description": "Tracks product inventory levels"
+      }
+    },
+    {
+      "name": "notifications",
+      "tableReference": "public.notifications",
+      "columns": [
+        {
+          "name": "notification_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique notification ID"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User who received notification"
+          }
+        },
+        {
+          "name": "type",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Notification type"
+          }
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Notification title"
+          }
+        },
+        {
+          "name": "message",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Notification details"
+          }
+        },
+        {
+          "name": "is_read",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "If notification is read"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "When notification was sent"
+          }
+        }
+      ],
+      "primaryKey": "notification_id",
+      "properties": {
+        "displayName": "Notifications",
+        "description": "Stores user notifications"
+      }
+    },
+    {
+      "name": "order_items",
+      "tableReference": "public.order_items",
+      "columns": [
+        {
+          "name": "order_item_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique item identifier"
+          }
+        },
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Order this item belongs to"
+          }
+        },
+        {
+          "name": "variant_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product variant identifier"
+          }
+        },
+        {
+          "name": "qty",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Quantity of item ordered"
+          }
+        },
+        {
+          "name": "unit_price",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Price per item"
+          }
+        },
+        {
+          "name": "line_total",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Total cost of item"
+          }
+        }
+      ],
+      "primaryKey": "order_item_id",
+      "properties": {
+        "displayName": "Order Items",
+        "description": "Stores items in customer orders"
+      }
+    },
+    {
+      "name": "orders",
+      "tableReference": "public.orders",
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique order identifier"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Customer who made the order"
+          }
+        },
+        {
+          "name": "coupon_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Applied coupon if any"
+          }
+        },
+        {
+          "name": "shipping_addr_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Shipping address for the order"
+          }
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Current order status"
+          }
+        },
+        {
+          "name": "subtotal",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Total before tax and shipping"
+          }
+        },
+        {
+          "name": "discount_amt",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Discount applied to the order"
+          }
+        },
+        {
+          "name": "shipping_cost",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Shipping cost for the order"
+          }
+        },
+        {
+          "name": "tax_amt",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Tax amount for the order"
+          }
+        },
+        {
+          "name": "total",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Total cost of the order"
+          }
+        },
+        {
+          "name": "notes",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Additional order notes"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Order creation timestamp"
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Order last update timestamp"
+          }
+        }
+      ],
+      "primaryKey": "order_id",
+      "properties": {
+        "displayName": "Orders",
+        "description": "Stores customer orders and their details"
+      }
+    },
+    {
+      "name": "payments",
+      "tableReference": "public.payments",
+      "columns": [
+        {
+          "name": "payment_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique payment identifier"
+          }
+        },
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Associated order identifier"
+          }
+        },
+        {
+          "name": "method",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Payment method used"
+          }
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Current payment status"
+          }
+        },
+        {
+          "name": "amount",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Payment amount"
+          }
+        },
+        {
+          "name": "transaction_id",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "External transaction identifier"
+          }
+        },
+        {
+          "name": "paid_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Date and time payment was made"
+          }
+        }
+      ],
+      "primaryKey": "payment_id",
+      "properties": {
+        "displayName": "Payments",
+        "description": "Stores payment information for orders"
+      }
+    },
+    {
+      "name": "product_images",
+      "tableReference": "public.product_images",
+      "columns": [
+        {
+          "name": "image_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique image identifier"
+          }
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product associated with image"
+          }
+        },
+        {
+          "name": "url",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Image location"
+          }
+        },
+        {
+          "name": "alt_text",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Image description"
+          }
+        },
+        {
+          "name": "sort_order",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Display order"
+          }
+        },
+        {
+          "name": "is_primary",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Main image indicator"
+          }
+        }
+      ],
+      "primaryKey": "image_id",
+      "properties": {
+        "displayName": "Product Images",
+        "description": "Stores product images"
+      }
+    },
+    {
+      "name": "product_tags",
+      "tableReference": "public.product_tags",
+      "columns": [
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product identifier"
+          }
+        },
+        {
+          "name": "tag_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Tag identifier"
+          }
+        }
+      ],
+      "primaryKey": "product_id",
+      "properties": {
+        "displayName": "Product Tags",
+        "description": "Product tag associations"
+      }
+    },
+    {
+      "name": "product_variants",
+      "tableReference": "public.product_variants",
+      "columns": [
+        {
+          "name": "variant_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique variant identifier"
+          }
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Parent product identifier"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Variant name"
+          }
+        },
+        {
+          "name": "sku_suffix",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Stock keeping unit suffix"
+          }
+        },
+        {
+          "name": "price_delta",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Price difference from base product"
+          }
+        },
+        {
+          "name": "stock_qty",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Quantity in stock"
+          }
+        }
+      ],
+      "primaryKey": "variant_id",
+      "properties": {
+        "displayName": "Product Variants",
+        "description": "Stores product variant details"
+      }
+    },
+    {
+      "name": "products",
+      "tableReference": "public.products",
+      "columns": [
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique product identifier"
+          }
+        },
+        {
+          "name": "category_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product category"
+          }
+        },
+        {
+          "name": "brand_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product brand"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product name"
+          }
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product URL slug"
+          }
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product details"
+          }
+        },
+        {
+          "name": "base_price",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product base price"
+          }
+        },
+        {
+          "name": "sku",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product stock keeping unit"
+          }
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product status"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product creation date"
+          }
+        }
+      ],
+      "primaryKey": "product_id",
+      "properties": {
+        "displayName": "Products",
+        "description": "Stores product information"
+      }
+    },
+    {
+      "name": "purchase_order_items",
+      "tableReference": "public.purchase_order_items",
+      "columns": [
+        {
+          "name": "poi_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Item identifier"
+          }
+        },
+        {
+          "name": "po_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Purchase order identifier"
+          }
+        },
+        {
+          "name": "variant_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product variant identifier"
+          }
+        },
+        {
+          "name": "qty",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Quantity ordered"
+          }
+        },
+        {
+          "name": "unit_cost",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Cost per unit"
+          }
+        }
+      ],
+      "primaryKey": "poi_id",
+      "properties": {
+        "displayName": "Purchase Order Items",
+        "description": "Stores items in a purchase order"
+      }
+    },
+    {
+      "name": "purchase_orders",
+      "tableReference": "public.purchase_orders",
+      "columns": [
+        {
+          "name": "po_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique order identifier"
+          }
+        },
+        {
+          "name": "supplier_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Supplier of the order"
+          }
+        },
+        {
+          "name": "warehouse_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Destination warehouse"
+          }
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Current order status"
+          }
+        },
+        {
+          "name": "total_cost",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Total cost of the order"
+          }
+        },
+        {
+          "name": "ordered_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Order placement timestamp"
+          }
+        },
+        {
+          "name": "expected_at",
+          "type": "DATE",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Expected delivery date"
+          }
+        }
+      ],
+      "primaryKey": "po_id",
+      "properties": {
+        "displayName": "Purchase Orders",
+        "description": "Stores purchase order information"
+      }
+    },
+    {
+      "name": "regions",
+      "tableReference": "public.regions",
+      "columns": [
+        {
+          "name": "region_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique region identifier"
+          }
+        },
+        {
+          "name": "country_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Country identifier"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Region name"
+          }
+        },
+        {
+          "name": "code",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Region code"
+          }
+        }
+      ],
+      "primaryKey": "region_id",
+      "properties": {
+        "displayName": "Regions",
+        "description": "Stores geographic regions"
+      }
+    },
+    {
+      "name": "returns",
+      "tableReference": "public.returns",
+      "columns": [
+        {
+          "name": "return_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique return identifier"
+          }
+        },
+        {
+          "name": "order_item_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Related order item"
+          }
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Return reason"
+          }
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Return status"
+          }
+        },
+        {
+          "name": "refund_amt",
+          "type": "NUMERIC",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Refund amount"
+          }
+        },
+        {
+          "name": "requested_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Return request date"
+          }
+        },
+        {
+          "name": "resolved_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Return resolution date"
+          }
+        }
+      ],
+      "primaryKey": "return_id",
+      "properties": {
+        "displayName": "Returns",
+        "description": "Stores return requests and their status"
+      }
+    },
+    {
+      "name": "reviews",
+      "tableReference": "public.reviews",
+      "columns": [
+        {
+          "name": "review_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique review identifier"
+          }
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product being reviewed"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User who wrote the review"
+          }
+        },
+        {
+          "name": "rating",
+          "type": "SMALLINT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Review rating"
+          }
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Review title"
+          }
+        },
+        {
+          "name": "body",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Review text"
+          }
+        },
+        {
+          "name": "is_verified",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Verified purchase"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Review creation date"
+          }
+        }
+      ],
+      "primaryKey": "review_id",
+      "properties": {
+        "displayName": "Reviews",
+        "description": "Stores customer reviews of products"
+      }
+    },
+    {
+      "name": "roles",
+      "tableReference": "public.roles",
+      "columns": [
+        {
+          "name": "role_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique role identifier"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Role name"
+          }
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Role description"
+          }
+        }
+      ],
+      "primaryKey": "role_id",
+      "properties": {
+        "displayName": "Roles",
+        "description": "Stores user roles and permissions"
+      }
+    },
+    {
+      "name": "shipments",
+      "tableReference": "public.shipments",
+      "columns": [
+        {
+          "name": "shipment_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique shipment identifier"
+          }
+        },
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Associated order identifier"
+          }
+        },
+        {
+          "name": "warehouse_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Warehouse where shipped from"
+          }
+        },
+        {
+          "name": "carrier",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Shipping carrier name"
+          }
+        },
+        {
+          "name": "tracking_number",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Tracking number for shipment"
+          }
+        },
+        {
+          "name": "shipped_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Date and time shipped"
+          }
+        },
+        {
+          "name": "delivered_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Date and time delivered"
+          }
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Current shipment status"
+          }
+        }
+      ],
+      "primaryKey": "shipment_id",
+      "properties": {
+        "displayName": "Shipments",
+        "description": "Stores shipment details and status"
+      }
+    },
+    {
+      "name": "suppliers",
+      "tableReference": "public.suppliers",
+      "columns": [
+        {
+          "name": "supplier_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique supplier identifier"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Supplier company name"
+          }
+        },
+        {
+          "name": "contact_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Supplier contact person"
+          }
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Supplier email address"
+          }
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Supplier phone number"
+          }
+        },
+        {
+          "name": "country_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Supplier country identifier"
+          }
+        }
+      ],
+      "primaryKey": "supplier_id",
+      "properties": {
+        "displayName": "Suppliers",
+        "description": "Stores supplier information"
+      }
+    },
+    {
+      "name": "support_tickets",
+      "tableReference": "public.support_tickets",
+      "columns": [
+        {
+          "name": "ticket_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique ticket identifier"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Customer who submitted the ticket"
+          }
+        },
+        {
+          "name": "assigned_to",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Support agent assigned to the ticket"
+          }
+        },
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Related order identifier"
+          }
+        },
+        {
+          "name": "subject",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Ticket subject or summary"
+          }
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Current ticket status"
+          }
+        },
+        {
+          "name": "priority",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Ticket priority level"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Ticket creation timestamp"
+          }
+        },
+        {
+          "name": "closed_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Ticket closure timestamp"
+          }
+        }
+      ],
+      "primaryKey": "ticket_id",
+      "properties": {
+        "displayName": "Support Tickets",
+        "description": "Stores customer support tickets"
+      }
+    },
+    {
+      "name": "tags",
+      "tableReference": "public.tags",
+      "columns": [
+        {
+          "name": "tag_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique tag identifier"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Tag name"
+          }
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Tag slug"
+          }
+        }
+      ],
+      "primaryKey": "tag_id",
+      "properties": {
+        "displayName": "Tags",
+        "description": "Stores product tags"
+      }
+    },
+    {
+      "name": "ticket_messages",
+      "tableReference": "public.ticket_messages",
+      "columns": [
+        {
+          "name": "message_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique message identifier"
+          }
+        },
+        {
+          "name": "ticket_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Associated ticket identifier"
+          }
+        },
+        {
+          "name": "sender_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User who sent the message"
+          }
+        },
+        {
+          "name": "body",
+          "type": "TEXT",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Message content"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Message creation timestamp"
+          }
+        }
+      ],
+      "primaryKey": "message_id",
+      "properties": {
+        "displayName": "Ticket Messages",
+        "description": "Stores messages related to support tickets"
+      }
+    },
+    {
+      "name": "user_addresses",
+      "tableReference": "public.user_addresses",
+      "columns": [
+        {
+          "name": "user_address_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique address association ID"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User identifier"
+          }
+        },
+        {
+          "name": "address_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Address identifier"
+          }
+        },
+        {
+          "name": "label",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Address type"
+          }
+        }
+      ],
+      "primaryKey": "user_address_id",
+      "properties": {
+        "displayName": "User Addresses",
+        "description": "Stores user address associations"
+      }
+    },
+    {
+      "name": "users",
+      "tableReference": "public.users",
+      "columns": [
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique user identifier"
+          }
+        },
+        {
+          "name": "role_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User role or position"
+          }
+        },
+        {
+          "name": "first_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User first name"
+          }
+        },
+        {
+          "name": "last_name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User last name"
+          }
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User email address"
+          }
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "User phone number"
+          }
+        },
+        {
+          "name": "password_hash",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Secure password storage"
+          }
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Account status"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Account creation date"
+          }
+        }
+      ],
+      "primaryKey": "user_id",
+      "properties": {
+        "displayName": "Users",
+        "description": "Stores user information and account details"
+      }
+    },
+    {
+      "name": "warehouses",
+      "tableReference": "public.warehouses",
+      "columns": [
+        {
+          "name": "warehouse_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique warehouse identifier"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Warehouse name"
+          }
+        },
+        {
+          "name": "address_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Linked address identifier"
+          }
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Warehouse status"
+          }
+        }
+      ],
+      "primaryKey": "warehouse_id",
+      "properties": {
+        "displayName": "Warehouses",
+        "description": "Stores warehouse information"
+      }
+    },
+    {
+      "name": "wishlist_items",
+      "tableReference": "public.wishlist_items",
+      "columns": [
+        {
+          "name": "wishlist_item_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique item identifier"
+          }
+        },
+        {
+          "name": "wishlist_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Wishlist identifier"
+          }
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Product identifier"
+          }
+        },
+        {
+          "name": "added_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Item added timestamp"
+          }
+        }
+      ],
+      "primaryKey": "wishlist_item_id",
+      "properties": {
+        "displayName": "Wishlist Items",
+        "description": "Stores items in a wishlist"
+      }
+    },
+    {
+      "name": "wishlists",
+      "tableReference": "public.wishlists",
+      "columns": [
+        {
+          "name": "wishlist_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Unique wishlist identifier"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Owner of the wishlist"
+          }
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Wishlist name"
+          }
+        },
+        {
+          "name": "is_public",
+          "type": "BOOLEAN",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Visibility of the wishlist"
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "relationship": null,
+          "isCalculated": false,
+          "isHidden": false,
+          "expression": null,
+          "properties": {
+            "description": "Wishlist creation date"
+          }
+        }
+      ],
+      "primaryKey": "wishlist_id",
+      "properties": {
+        "displayName": "Wishlists",
+        "description": "Stores user wishlists"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "name": "regions_country_id_fkey",
+      "models": [
+        "regions",
+        "countries"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "regions.country_id = countries.country_id"
+    },
+    {
+      "name": "cities_region_id_fkey",
+      "models": [
+        "cities",
+        "regions"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "cities.region_id = regions.region_id"
+    },
+    {
+      "name": "addresses_city_id_fkey",
+      "models": [
+        "addresses",
+        "cities"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "addresses.city_id = cities.city_id"
+    },
+    {
+      "name": "users_role_id_fkey",
+      "models": [
+        "users",
+        "roles"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "users.role_id = roles.role_id"
+    },
+    {
+      "name": "user_addresses_user_id_fkey",
+      "models": [
+        "user_addresses",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "user_addresses.user_id = users.user_id"
+    },
+    {
+      "name": "user_addresses_address_id_fkey",
+      "models": [
+        "user_addresses",
+        "addresses"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "user_addresses.address_id = addresses.address_id"
+    },
+    {
+      "name": "categories_parent_id_fkey",
+      "models": [
+        "categories",
+        "categories"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "categories.parent_id = categories.category_id"
+    },
+    {
+      "name": "brands_country_id_fkey",
+      "models": [
+        "brands",
+        "countries"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "brands.country_id = countries.country_id"
+    },
+    {
+      "name": "products_category_id_fkey",
+      "models": [
+        "products",
+        "categories"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "products.category_id = categories.category_id"
+    },
+    {
+      "name": "products_brand_id_fkey",
+      "models": [
+        "products",
+        "brands"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "products.brand_id = brands.brand_id"
+    },
+    {
+      "name": "product_variants_product_id_fkey",
+      "models": [
+        "product_variants",
+        "products"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "product_variants.product_id = products.product_id"
+    },
+    {
+      "name": "product_images_product_id_fkey",
+      "models": [
+        "product_images",
+        "products"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "product_images.product_id = products.product_id"
+    },
+    {
+      "name": "product_tags_product_id_fkey",
+      "models": [
+        "product_tags",
+        "products"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "product_tags.product_id = products.product_id"
+    },
+    {
+      "name": "product_tags_tag_id_fkey",
+      "models": [
+        "product_tags",
+        "tags"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "product_tags.tag_id = tags.tag_id"
+    },
+    {
+      "name": "warehouses_address_id_fkey",
+      "models": [
+        "warehouses",
+        "addresses"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "warehouses.address_id = addresses.address_id"
+    },
+    {
+      "name": "inventory_variant_id_fkey",
+      "models": [
+        "inventory",
+        "product_variants"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "inventory.variant_id = product_variants.variant_id"
+    },
+    {
+      "name": "inventory_warehouse_id_fkey",
+      "models": [
+        "inventory",
+        "warehouses"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "inventory.warehouse_id = warehouses.warehouse_id"
+    },
+    {
+      "name": "suppliers_country_id_fkey",
+      "models": [
+        "suppliers",
+        "countries"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "suppliers.country_id = countries.country_id"
+    },
+    {
+      "name": "purchase_orders_supplier_id_fkey",
+      "models": [
+        "purchase_orders",
+        "suppliers"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "purchase_orders.supplier_id = suppliers.supplier_id"
+    },
+    {
+      "name": "purchase_orders_warehouse_id_fkey",
+      "models": [
+        "purchase_orders",
+        "warehouses"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "purchase_orders.warehouse_id = warehouses.warehouse_id"
+    },
+    {
+      "name": "purchase_order_items_po_id_fkey",
+      "models": [
+        "purchase_order_items",
+        "purchase_orders"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "purchase_order_items.po_id = purchase_orders.po_id"
+    },
+    {
+      "name": "purchase_order_items_variant_id_fkey",
+      "models": [
+        "purchase_order_items",
+        "product_variants"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "purchase_order_items.variant_id = product_variants.variant_id"
+    },
+    {
+      "name": "orders_user_id_fkey",
+      "models": [
+        "orders",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "orders.user_id = users.user_id"
+    },
+    {
+      "name": "orders_coupon_id_fkey",
+      "models": [
+        "orders",
+        "coupons"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "orders.coupon_id = coupons.coupon_id"
+    },
+    {
+      "name": "orders_shipping_addr_id_fkey",
+      "models": [
+        "orders",
+        "addresses"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "orders.shipping_addr_id = addresses.address_id"
+    },
+    {
+      "name": "order_items_order_id_fkey",
+      "models": [
+        "order_items",
+        "orders"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "order_items.order_id = orders.order_id"
+    },
+    {
+      "name": "order_items_variant_id_fkey",
+      "models": [
+        "order_items",
+        "product_variants"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "order_items.variant_id = product_variants.variant_id"
+    },
+    {
+      "name": "shipments_order_id_fkey",
+      "models": [
+        "shipments",
+        "orders"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "shipments.order_id = orders.order_id"
+    },
+    {
+      "name": "shipments_warehouse_id_fkey",
+      "models": [
+        "shipments",
+        "warehouses"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "shipments.warehouse_id = warehouses.warehouse_id"
+    },
+    {
+      "name": "payments_order_id_fkey",
+      "models": [
+        "payments",
+        "orders"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "payments.order_id = orders.order_id"
+    },
+    {
+      "name": "returns_order_item_id_fkey",
+      "models": [
+        "returns",
+        "order_items"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "returns.order_item_id = order_items.order_item_id"
+    },
+    {
+      "name": "reviews_product_id_fkey",
+      "models": [
+        "reviews",
+        "products"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "reviews.product_id = products.product_id"
+    },
+    {
+      "name": "reviews_user_id_fkey",
+      "models": [
+        "reviews",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "reviews.user_id = users.user_id"
+    },
+    {
+      "name": "wishlists_user_id_fkey",
+      "models": [
+        "wishlists",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "wishlists.user_id = users.user_id"
+    },
+    {
+      "name": "wishlist_items_wishlist_id_fkey",
+      "models": [
+        "wishlist_items",
+        "wishlists"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "wishlist_items.wishlist_id = wishlists.wishlist_id"
+    },
+    {
+      "name": "wishlist_items_product_id_fkey",
+      "models": [
+        "wishlist_items",
+        "products"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "wishlist_items.product_id = products.product_id"
+    },
+    {
+      "name": "carts_user_id_fkey",
+      "models": [
+        "carts",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "carts.user_id = users.user_id"
+    },
+    {
+      "name": "cart_items_cart_id_fkey",
+      "models": [
+        "cart_items",
+        "carts"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "cart_items.cart_id = carts.cart_id"
+    },
+    {
+      "name": "cart_items_variant_id_fkey",
+      "models": [
+        "cart_items",
+        "product_variants"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "cart_items.variant_id = product_variants.variant_id"
+    },
+    {
+      "name": "notifications_user_id_fkey",
+      "models": [
+        "notifications",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "notifications.user_id = users.user_id"
+    },
+    {
+      "name": "support_tickets_user_id_fkey",
+      "models": [
+        "support_tickets",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "support_tickets.user_id = users.user_id"
+    },
+    {
+      "name": "support_tickets_assigned_to_fkey",
+      "models": [
+        "support_tickets",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "support_tickets.assigned_to = users.user_id"
+    },
+    {
+      "name": "support_tickets_order_id_fkey",
+      "models": [
+        "support_tickets",
+        "orders"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "support_tickets.order_id = orders.order_id"
+    },
+    {
+      "name": "ticket_messages_ticket_id_fkey",
+      "models": [
+        "ticket_messages",
+        "support_tickets"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "ticket_messages.ticket_id = support_tickets.ticket_id"
+    },
+    {
+      "name": "ticket_messages_sender_id_fkey",
+      "models": [
+        "ticket_messages",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "ticket_messages.sender_id = users.user_id"
+    },
+    {
+      "name": "audit_log_user_id_fkey",
+      "models": [
+        "audit_log",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "audit_log.user_id = users.user_id"
+    },
+    {
+      "name": "analytics_events_user_id_fkey",
+      "models": [
+        "analytics_events",
+        "users"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "analytics_events.user_id = users.user_id"
+    },
+    {
+      "name": "analytics_events_product_id_fkey",
+      "models": [
+        "analytics_events",
+        "products"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "analytics_events.product_id = products.product_id"
+    }
+  ],
+  "metrics": [],
+  "views": []
+}

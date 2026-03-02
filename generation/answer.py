@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from jinja2 import Template
-from langchain_groq import ChatGroq
+from langchain_core.language_models import BaseChatModel
 
 from generation.prompts import SQL_ANSWER_SYSTEM_PROMPT, SQL_ANSWER_USER_TEMPLATE
 
@@ -15,7 +15,7 @@ _MAX_DATA_CHARS = 24_000  # ~6 000 tokens reserved for data
 class AnswerGenerator:
     """Generates a natural-language answer from query + SQL + result data."""
 
-    def __init__(self, llm: ChatGroq):
+    def __init__(self, llm: BaseChatModel):
         self._llm = llm
         self._user_template = Template(SQL_ANSWER_USER_TEMPLATE)
 

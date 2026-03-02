@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import orjson
 from jinja2 import Template
-from langchain_groq import ChatGroq
+from langchain_core.language_models import BaseChatModel
 
 from generation.prompts import (
     SQL_CORRECTION_SYSTEM_PROMPT,
@@ -27,7 +27,7 @@ class SQLValidator:
 class SQLCorrector:
     """Corrects invalid SQL using Groq LLM."""
 
-    def __init__(self, llm: ChatGroq):
+    def __init__(self, llm: BaseChatModel):
         self._llm = llm
         self._user_template = Template(SQL_CORRECTION_USER_TEMPLATE)
 

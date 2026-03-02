@@ -16,10 +16,10 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from langchain_groq import ChatGroq
-from langchain_ollama import OllamaEmbeddings
+from langchain_core.language_models import BaseChatModel
 
 from config import Settings
+from providers import create_llm, create_embeddings
 from generation.answer import AnswerGenerator
 from generation.intent import IntentClassifier
 from generation.sql_correction import SQLCorrector, SQLValidator
@@ -47,7 +47,7 @@ class NL2SQLEngine:
         self.settings = Settings()
         self.store_manager = None
         self.adapter = None
-        self.llm: ChatGroq | None = None
+        self.llm: BaseChatModel | None = None
         self.ask_service: AskService | None = None
         self.semantics_service: SemanticsPreparationService | None = None
         self.answer_generator: AnswerGenerator | None = None
@@ -59,25 +59,19 @@ class NL2SQLEngine:
         """Initialize all components (mirrors main.py lifespan wiring)."""
         s = self.settings
 
-        print("[1/5] Initializing LLM (Groq)...")
-        llm = ChatGroq(
-            api_key=s.groq_api_key,
-            model=s.groq_model,
-            temperature=0,
-        )
+        print(f"[1/5] Initializing LLM ({s.llm_provider})...")
+        llm = create_llm(s)
         self.llm = llm
 
-        print("[2/5] Initializing Embeddings (Ollama)...")
-        embeddings = OllamaEmbeddings(
-            base_url=s.ollama_base_url,
-            model=s.ollama_embedding_model,
-        )
+        print(f"[2/5] Initializing Embeddings ({s.embedding_provider})...")
+        embeddings = create_embeddings(s)
         try:
             await embeddings.aembed_query("test")
         except Exception as e:
-            print(f"\n  ERROR: Cannot connect to Ollama at {s.ollama_base_url}")
-            print(f"  Make sure Ollama is running: ollama serve")
-            print(f"  And model is pulled: ollama pull {s.ollama_embedding_model}")
+            print(f"\n  ERROR: Cannot connect to embedding provider ({s.embedding_provider})")
+            if s.embedding_provider == "ollama":
+                print(f"  Make sure Ollama is running: ollama serve")
+                print(f"  And model is pulled: ollama pull {s.ollama_embedding_model}")
             print(f"  Error: {e}")
             sys.exit(1)
 
@@ -240,8 +234,9 @@ class NL2SQLEngine:
             error_info = status.get("error", {})
             print(f"\n  INDEXING FAILED: {error_info.get('message', 'Unknown error')}")
             print("  Common causes:")
-            print("    - Ollama not running: ollama serve")
-            print(f"    - Model not pulled: ollama pull {self.settings.ollama_embedding_model}")
+            if self.settings.embedding_provider == "ollama":
+                print("    - Ollama not running: ollama serve")
+                print(f"    - Model not pulled: ollama pull {self.settings.ollama_embedding_model}")
             print("    - Embedding input too long: reduce COLUMN_INDEXING_BATCH_SIZE in .env")
             return
 

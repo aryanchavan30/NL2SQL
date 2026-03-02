@@ -13,7 +13,7 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from langchain_groq import ChatGroq
+    from langchain_core.language_models import BaseChatModel
     from mdl.adapter import DatabaseAdapter
 
 from mdl.schema import MDL
@@ -92,7 +92,7 @@ def _build_sample_query(table_ref: str, db_type: str) -> str:
 async def enrich_mdl(
     mdl: MDL,
     adapter: "DatabaseAdapter",
-    llm: "ChatGroq",
+    llm: "BaseChatModel",
     db_type: str = "postgresql",
 ) -> MDL:
     """Enrich all table and column descriptions in *mdl* using the LLM.

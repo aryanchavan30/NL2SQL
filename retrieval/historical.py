@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Optional
 
-from langchain_ollama import OllamaEmbeddings
+from langchain_core.embeddings import Embeddings
 
 from indexing.store import FAISSStoreManager
 from utils.helpers import score_filter
@@ -15,7 +15,7 @@ class HistoricalQuestionRetrieval:
     def __init__(
         self,
         store_manager: FAISSStoreManager,
-        embeddings: OllamaEmbeddings,
+        embeddings: Embeddings,
         similarity_threshold: float = 0.9,
     ):
         self._store = store_manager.get_store("view_questions")

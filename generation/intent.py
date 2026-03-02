@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import orjson
 from jinja2 import Template
-from langchain_groq import ChatGroq
+from langchain_core.language_models import BaseChatModel
 
 from generation.prompts import (
     INTENT_CLASSIFICATION_SYSTEM_PROMPT,
@@ -17,7 +17,7 @@ logger = logging.getLogger("nl2sql")
 class IntentClassifier:
     """Classifies user query intent: TEXT_TO_SQL | MISLEADING_QUERY | GENERAL."""
 
-    def __init__(self, llm: ChatGroq):
+    def __init__(self, llm: BaseChatModel):
         self._llm = llm
         self._user_template = Template(INTENT_CLASSIFICATION_USER_TEMPLATE)
 

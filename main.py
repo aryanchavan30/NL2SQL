@@ -6,14 +6,13 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from langchain_groq import ChatGroq
-from langchain_ollama import OllamaEmbeddings
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from api.routes import router
 from config import Settings
+from providers import create_llm, create_embeddings
 from generation.intent import IntentClassifier
 from generation.sql_correction import SQLCorrector, SQLValidator
 from generation.answer import AnswerGenerator
@@ -43,19 +42,12 @@ async def lifespan(app: FastAPI):
     logger.info("Starting NL2SQL service...")
 
     # Init LLM
-    llm = ChatGroq(
-        api_key=settings.groq_api_key,
-        model=settings.groq_model,
-        temperature=0,
-    )
-    logger.info(f"LLM initialized: {settings.groq_model}")
+    llm = create_llm(settings)
+    logger.info(f"LLM initialized: provider={settings.llm_provider}")
 
     # Init embeddings
-    embeddings = OllamaEmbeddings(
-        base_url=settings.ollama_base_url,
-        model=settings.ollama_embedding_model,
-    )
-    logger.info(f"Embeddings initialized: {settings.ollama_embedding_model}")
+    embeddings = create_embeddings(settings)
+    logger.info(f"Embeddings initialized: provider={settings.embedding_provider}")
 
     # Init FAISS store manager
     store_manager = FAISSStoreManager(

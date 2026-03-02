@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import orjson
 from jinja2 import Template
-from langchain_groq import ChatGroq
+from langchain_core.language_models import BaseChatModel
 
 from generation.prompts import (
     CALCULATED_FIELD_INSTRUCTIONS,
@@ -19,7 +19,7 @@ logger = logging.getLogger("nl2sql")
 class SQLGenerator:
     """Generates SQL from natural language using Groq LLM."""
 
-    def __init__(self, llm: ChatGroq):
+    def __init__(self, llm: BaseChatModel):
         self._llm = llm
         self._user_template = Template(SQL_GENERATION_USER_TEMPLATE)
 

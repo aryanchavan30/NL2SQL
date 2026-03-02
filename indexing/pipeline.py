@@ -3,7 +3,7 @@ import logging
 from typing import Any
 
 import orjson
-from langchain_ollama import OllamaEmbeddings
+from langchain_core.embeddings import Embeddings
 
 from indexing.chunkers import DDLChunker, SqlPairsConverter, TableDescriptionChunker, ViewChunker
 from indexing.store import Document, FAISSStoreManager
@@ -17,7 +17,7 @@ class IndexingPipeline:
     def __init__(
         self,
         store_manager: FAISSStoreManager,
-        embeddings: OllamaEmbeddings,
+        embeddings: Embeddings,
         column_batch_size: int = 50,
     ):
         self._store_manager = store_manager

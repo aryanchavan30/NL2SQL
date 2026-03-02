@@ -86,12 +86,14 @@ User sees: Answer + SQL + Schema used + Tables
 
 ## Prerequisites
 
-| Service    | What                                           | Setup                                                |
-|------------|------------------------------------------------|------------------------------------------------------|
-| Ollama     | Local embedding model (`nomic-embed-text`)     | Install [Ollama](https://ollama.com), then: `ollama pull nomic-embed-text` |
-| Database   | Target database to query                       | PostgreSQL, MySQL, MSSQL, Snowflake, BigQuery, or Databricks |
-| Groq       | LLM API for SQL generation + description enrichment | Sign up at [groq.com](https://console.groq.com), get API key |
-| Python     | 3.12+                                          | [python.org](https://www.python.org/downloads/)      |
+| Service      | What                                           | Setup                                                |
+|--------------|------------------------------------------------|------------------------------------------------------|
+| **LLM**      | One of: Groq, OpenAI, or Azure OpenAI          | Get an API key from your chosen provider             |
+| **Embeddings** | One of: Ollama (local), OpenAI, or Azure OpenAI | Ollama: install + `ollama pull nomic-embed-text`; OpenAI/Azure: API key |
+| Database     | Target database to query                       | PostgreSQL, MySQL, MSSQL, Snowflake, BigQuery, or Databricks |
+| Python       | 3.12+                                          | [python.org](https://www.python.org/downloads/)      |
+
+**Default providers:** Groq (LLM) + Ollama (embeddings). Set `LLM_PROVIDER` and `EMBEDDING_PROVIDER` in `.env` to switch.
 
 ---
 
@@ -119,8 +121,13 @@ cp .env.example .env
 ```
 
 ```env
-# Required
+# LLM provider: groq (default) | openai | azure_openai
+LLM_PROVIDER=groq
 GROQ_API_KEY=gsk_your_key_here
+
+# Embedding provider: ollama (default) | openai | azure_openai
+EMBEDDING_PROVIDER=ollama
+EMBEDDING_DIMENSION=768
 
 # Database (adjust to your DB)
 DB_TYPE=postgresql          # postgresql | mysql | mssql | snowflake | bigquery | databricks
@@ -133,25 +140,21 @@ DB_SCHEMA=public
 
 # For cloud databases, use a full connection string instead:
 # DB_CONNECTION_STRING=snowflake://user:pass@account/db/schema?warehouse=WH&role=ROLE
-
-# Optional (defaults shown)
-GROQ_MODEL=llama-3.3-70b-versatile
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_EMBEDDING_MODEL=nomic-embed-text
-EMBEDDING_DIMENSION=768
-FAISS_PERSIST_DIR=./faiss_indices
-LOG_LEVEL=INFO
 ```
+
+See `.env.example` for all provider-specific variables (OpenAI, Azure OpenAI, etc.).
 
 > **Note:** Legacy `PG_*` env vars (`PG_HOST`, `PG_PORT`, etc.) still work as fallback for PostgreSQL.
 
-### 3. Start Ollama
+### 3. Start Ollama (if using Ollama embeddings)
 
 ```bash
 ollama serve
 # In another terminal:
 ollama pull nomic-embed-text
 ```
+
+> Skip this step if using `EMBEDDING_PROVIDER=openai` or `EMBEDDING_PROVIDER=azure_openai`.
 
 ### 4. Run
 
@@ -374,27 +377,64 @@ DELETE /v1/semantics
 
 All settings are in `config.py` and read from `.env`. Every setting has a sensible default.
 
-### Connection Settings
+### Provider Settings
 
 | Variable                 | Default                     | Description                     |
 |--------------------------|-----------------------------|---------------------------------|
-| `GROQ_API_KEY`           | *(required)*                | Groq API key                    |
-| `GROQ_MODEL`             | `llama-3.3-70b-versatile`  | Groq model identifier           |
-| `OLLAMA_BASE_URL`        | `http://localhost:11434`    | Ollama server URL               |
-| `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text`          | Embedding model name            |
-| `EMBEDDING_DIMENSION`    | `768`                       | Vector dimensionality           |
-| `DB_TYPE`                | `postgresql`                | Database type (`postgresql`, `mysql`, `mssql`, `snowflake`, `bigquery`, `databricks`) |
-| `DB_HOST`                | `localhost`                 | Database host                   |
-| `DB_PORT`                | `5432`                      | Database port                   |
-| `DB_USER`                | `postgres`                  | Database user                   |
-| `DB_PASSWORD`            | `postgres`                  | Database password               |
-| `DB_DATABASE`            | `northwind`                 | Database name                   |
-| `DB_SCHEMA`              | `public`                    | Schema name (e.g., `public`, `dbo`) |
-| `DB_CONNECTION_STRING`   | *(empty)*                   | Full connection string override (required for Snowflake/BigQuery/Databricks) |
-| `FAISS_PERSIST_DIR`      | `./faiss_indices`           | Directory for persisted indices |
-| `LOG_LEVEL`              | `INFO`                      | Logging level                   |
+| `LLM_PROVIDER`           | `groq`                      | LLM provider: `groq`, `openai`, `azure_openai` |
+| `EMBEDDING_PROVIDER`     | `ollama`                    | Embedding provider: `ollama`, `openai`, `azure_openai` |
+| `EMBEDDING_DIMENSION`    | `768`                       | Vector dimensionality (768 for nomic-embed-text, 1536 for OpenAI text-embedding-3-small) |
+
+### Groq Settings (when `LLM_PROVIDER=groq`)
+
+| Variable        | Default                    | Description        |
+|-----------------|----------------------------|--------------------|
+| `GROQ_API_KEY`  | *(required)*               | Groq API key       |
+| `GROQ_MODEL`    | `llama-3.3-70b-versatile`  | Groq model name    |
+
+### Ollama Settings (when `EMBEDDING_PROVIDER=ollama`)
+
+| Variable                 | Default                   | Description              |
+|--------------------------|---------------------------|--------------------------|
+| `OLLAMA_BASE_URL`        | `http://localhost:11434`  | Ollama server URL        |
+| `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text`        | Embedding model name     |
+
+### OpenAI Settings (when `LLM_PROVIDER=openai` or `EMBEDDING_PROVIDER=openai`)
+
+| Variable                 | Default                     | Description                |
+|--------------------------|-----------------------------|----------------------------|
+| `OPENAI_API_KEY`         | *(required)*                | OpenAI API key             |
+| `OPENAI_MODEL`           | `gpt-4o`                    | Chat model name            |
+| `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small`    | Embedding model name       |
+
+### Azure OpenAI Settings (when provider is `azure_openai`)
+
+| Variable                           | Default       | Description                 |
+|------------------------------------|---------------|-----------------------------|
+| `AZURE_OPENAI_API_KEY`             | *(required)*  | Azure OpenAI API key        |
+| `AZURE_OPENAI_ENDPOINT`            | *(required)*  | Azure OpenAI endpoint URL   |
+| `AZURE_OPENAI_API_VERSION`         | `2024-06-01`  | API version                 |
+| `AZURE_OPENAI_LLM_DEPLOYMENT`      | *(required)*  | LLM deployment name         |
+| `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` | *(required)* | Embedding deployment name   |
+
+### Database Settings
+
+| Variable               | Default           | Description                     |
+|------------------------|-------------------|---------------------------------|
+| `DB_TYPE`              | `postgresql`      | Database type (`postgresql`, `mysql`, `mssql`, `snowflake`, `bigquery`, `databricks`) |
+| `DB_HOST`              | `localhost`       | Database host                   |
+| `DB_PORT`              | `5432`            | Database port                   |
+| `DB_USER`              | `postgres`        | Database user                   |
+| `DB_PASSWORD`          | `postgres`        | Database password               |
+| `DB_DATABASE`          | `northwind`       | Database name                   |
+| `DB_SCHEMA`            | `public`          | Schema name (e.g., `public`, `dbo`) |
+| `DB_CONNECTION_STRING` | *(empty)*         | Full connection string override (required for Snowflake/BigQuery/Databricks) |
+| `FAISS_PERSIST_DIR`    | `./faiss_indices` | Directory for persisted indices |
+| `LOG_LEVEL`            | `INFO`            | Logging level                   |
 
 > **Legacy:** `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE` still work as fallback when `DB_*` vars are not set.
+>
+> **Switching embedding providers:** Different models produce different vector dimensions. When changing `EMBEDDING_PROVIDER`, update `EMBEDDING_DIMENSION` and delete `faiss_indices/` to re-index.
 
 ### Pipeline Tuning
 
@@ -419,6 +459,7 @@ All settings are in `config.py` and read from `.env`. Every setting has a sensib
 ```
 NL2SQL/
 ├── config.py                  Settings (Pydantic BaseSettings, reads .env)
+├── providers.py               LLM + Embedding factory functions (Groq, OpenAI, Azure OpenAI, Ollama)
 ├── main.py                    FastAPI app + lifespan wiring
 ├── run.py                     Interactive CLI
 ├── requirements.txt           Python dependencies
@@ -597,7 +638,7 @@ When a schema is indexed, the pipeline creates 6 FAISS collections:
 | `instructions`       | User-defined SQL generation rules                               | Custom rules in prompts           |
 | `project_meta`       | Project metadata (no embeddings)                                | Multi-tenant filtering            |
 
-Each document's text content is embedded via Ollama (`nomic-embed-text`, 768 dimensions), L2-normalized, and stored in a FAISS `IndexFlatIP` index. The indices are persisted to disk as `.faiss` + `.meta.pkl` files and reloaded on next startup.
+Each document's text content is embedded via the configured embedding provider (default: Ollama `nomic-embed-text`, 768 dimensions), L2-normalized, and stored in a FAISS `IndexFlatIP` index. The indices are persisted to disk as `.faiss` + `.meta.pkl` files and reloaded on next startup. Set `EMBEDDING_DIMENSION` to match your model (768 for nomic-embed-text, 1536 for OpenAI text-embedding-3-small).
 
 ---
 
@@ -658,18 +699,16 @@ The LLM is instructed to summarize based on the sample and mention that more res
 
 ## Troubleshooting
 
-### "Cannot connect to Ollama"
+### "Cannot connect to embedding provider"
 
+**Ollama** (`EMBEDDING_PROVIDER=ollama`):
 ```bash
-# Make sure Ollama is running
 ollama serve
-
-# Pull the embedding model
 ollama pull nomic-embed-text
-
-# Test it
 curl http://localhost:11434/api/embeddings -d '{"model": "nomic-embed-text", "prompt": "test"}'
 ```
+
+**OpenAI / Azure OpenAI**: Check that your API key is valid and the model/deployment exists.
 
 ### "Cannot connect to database"
 

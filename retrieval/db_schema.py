@@ -2,7 +2,7 @@ import ast
 import logging
 from typing import Any, Optional
 
-from langchain_ollama import OllamaEmbeddings
+from langchain_core.embeddings import Embeddings
 
 from indexing.store import FAISSStoreManager
 from utils.helpers import build_metric_ddl, build_table_ddl, build_view_ddl
@@ -16,7 +16,7 @@ class DBSchemaRetrieval:
     def __init__(
         self,
         store_manager: FAISSStoreManager,
-        embeddings: OllamaEmbeddings,
+        embeddings: Embeddings,
         table_retrieval_size: int = 10,
         table_column_retrieval_size: int = 100,
     ):
