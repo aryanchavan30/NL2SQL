@@ -1,11 +1,3 @@
-"""LLM-powered MDL description enrichment.
-
-After database introspection produces an MDL with generic descriptions
-(e.g. "Table orders", empty column descriptions), this module calls the
-LLM to generate meaningful business-context descriptions for every table
-and column based on their names, types, relationships, and sample data.
-"""
-
 from __future__ import annotations
 
 import json
@@ -94,69 +86,82 @@ async def enrich_mdl(
     adapter: "DatabaseAdapter",
     llm: "BaseChatModel",
     db_type: str = "postgresql",
+    llm_mode: str = "api",
 ) -> MDL:
     """Enrich all table and column descriptions in *mdl* using the LLM.
 
-    Iterates through each model, fetches sample rows, asks the LLM to
-    generate descriptions, and writes them back into the MDL in-place.
-
-    Tables are processed sequentially to stay within Groq rate limits.
+    local mode: tables processed concurrently (4 at a time) — safe for Ollama.
+    api mode:   tables processed sequentially — avoids rate-limit errors.
     """
+    import asyncio
     from langchain_core.messages import HumanMessage, SystemMessage
 
+    concurrency = 4 if llm_mode == "local" else 1
     total = len(mdl.models)
-    print(f"\n  Enriching descriptions for {total} tables via LLM...")
+    mode_label = "concurrent" if llm_mode == "local" else "sequential"
+    print(f"\n  Enriching descriptions for {total} tables ({mode_label})...")
 
-    for idx, model in enumerate(mdl.models, 1):
-        table_name = model.name
-        table_ref = model.tableReference or table_name
-        print(f"    [{idx}/{total}] {table_name}...", end="", flush=True)
+    sem = asyncio.Semaphore(concurrency)
+    completed = 0
 
-        # 1. Fetch sample rows
-        sample_rows: list[dict] | None = None
-        try:
-            query = _build_sample_query(table_ref, db_type)
-            _cols, rows = await adapter.execute_sql(query)
-            if rows:
-                sample_rows = rows
-        except Exception as e:
-            logger.warning("Could not fetch sample data for %s: %s", table_name, e)
+    async def _enrich_table(idx: int, model) -> None:
+        nonlocal completed
+        async with sem:
+            table_name = model.name
+            table_ref = model.tableReference or table_name
 
-        # 2. Collect column info and relationships
-        columns_info = [{"name": c.name, "type": c.type} for c in model.columns]
-        relationships = _get_table_relationships(mdl, table_name)
+            # 1. Fetch sample rows
+            sample_rows: list[dict] | None = None
+            try:
+                query = _build_sample_query(table_ref, db_type)
+                _cols, rows = await adapter.execute_sql(query)
+                if rows:
+                    sample_rows = rows
+            except Exception as e:
+                logger.warning("Could not fetch sample data for %s: %s", table_name, e)
 
-        # 3. Build prompt and call LLM
-        user_prompt = _build_user_prompt(
-            table_name, columns_info, relationships, sample_rows,
-        )
+            # 2. Collect column info and relationships
+            columns_info = [{"name": c.name, "type": c.type} for c in model.columns]
+            relationships = _get_table_relationships(mdl, table_name)
 
-        try:
-            response = await llm.ainvoke(
-                [
-                    SystemMessage(content=SYSTEM_PROMPT),
-                    HumanMessage(content=user_prompt),
-                ],
-                response_format={"type": "json_object"},
+            # 3. Build prompt and call LLM
+            user_prompt = _build_user_prompt(
+                table_name, columns_info, relationships, sample_rows,
             )
-            result = json.loads(response.content)
-        except Exception as e:
-            logger.warning("LLM enrichment failed for %s: %s", table_name, e)
-            print(" skipped (LLM error)")
-            continue
 
-        # 4. Write descriptions back into the MDL
-        table_desc = result.get("table_description", "")
-        if table_desc:
-            model.properties["description"] = table_desc
+            try:
+                response = await llm.ainvoke(
+                    [
+                        SystemMessage(content=SYSTEM_PROMPT),
+                        HumanMessage(content=user_prompt),
+                    ],
+                    response_format={"type": "json_object"},
+                )
+                result = json.loads(response.content)
+            except Exception as e:
+                logger.warning("LLM enrichment failed for %s: %s", table_name, e)
+                completed += 1
+                print(f"    [{completed}/{total}] {table_name} skipped (LLM error)")
+                return
 
-        col_descs = result.get("columns", {})
-        for col in model.columns:
-            desc = col_descs.get(col.name, "")
-            if desc:
-                col.properties["description"] = desc
+            # 4. Write descriptions back into the MDL
+            table_desc = result.get("table_description", "")
+            if table_desc:
+                model.properties["description"] = table_desc
 
-        print(" done")
+            col_descs = result.get("columns", {})
+            for col in model.columns:
+                desc = col_descs.get(col.name, "")
+                if desc:
+                    col.properties["description"] = desc
+
+            completed += 1
+            print(f"    [{completed}/{total}] {table_name} done")
+
+    await asyncio.gather(*[
+        _enrich_table(idx, model)
+        for idx, model in enumerate(mdl.models, 1)
+    ])
 
     print("  Enrichment complete.\n")
     return mdl

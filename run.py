@@ -1,11 +1,3 @@
-"""
-Interactive NL2SQL CLI — Ask questions in natural language, get SQL back.
-
-Usage:
-    python run.py                          # Auto-introspects DB, builds MDL using mdl/schema.py
-    python run.py --mdl path/to/mdl.json   # Load MDL from file on startup
-"""
-
 import asyncio
 import hashlib
 import json
@@ -126,7 +118,7 @@ class NL2SQLEngine:
             table_column_retrieval_size=s.table_column_retrieval_size,
         )
 
-        intent_classifier = IntentClassifier(llm=llm)
+        intent_classifier = IntentClassifier(llm=llm, force_sql=s.intent_override.upper() == "SQL")
         sql_generator = SQLGenerator(llm=llm)
         self.answer_generator = AnswerGenerator(llm=llm)
         sql_corrector = SQLCorrector(llm=llm)
@@ -187,8 +179,12 @@ class NL2SQLEngine:
 
     async def index_from_db(self):
         """Auto-introspect database and build MDL via the adapter."""
+        mdl_start = time.time()
+
         print("\nIntrospecting database to build MDL...")
+        t0 = time.time()
         mdl = await self.adapter.introspect(schema=self.settings.db_schema)
+        print(f"  Introspection done in {time.time() - t0:.1f}s")
 
         print(f"  Built MDL with {len(mdl.models)} models, {len(mdl.relationships)} relationships:")
         for m in mdl.models:
@@ -197,9 +193,14 @@ class NL2SQLEngine:
         # Enrich descriptions via LLM
         from mdl.enrichment import enrich_mdl
 
+        print("  Enriching descriptions via LLM...")
+        t0 = time.time()
         mdl = await enrich_mdl(
-            mdl, self.adapter, self.llm, db_type=self.settings.db_type,
+            mdl, self.adapter, self.llm,
+            db_type=self.settings.db_type,
+            llm_mode=self.settings.llm_mode,
         )
+        print(f"  Enrichment done in {time.time() - t0:.1f}s")
         self._current_mdl = mdl
 
         # Save MDL JSON for reference/reuse
@@ -211,6 +212,7 @@ class NL2SQLEngine:
             f.write(mdl_json)
         print(f"  MDL saved to: {mdl_path}")
         print(f"  (You can edit this file and reload with --mdl {mdl_path})")
+        print(f"  Total MDL creation time: {time.time() - mdl_start:.1f}s")
         print()
 
         await self._run_indexing(mdl.model_dump_json(by_alias=True))
@@ -554,15 +556,17 @@ async def main():
             sql = extract_sql_from_result(result)
             if sql:
                 # Auto-execute SQL and generate NL answer
+                nl_answer = ""
                 try:
                     columns, rows = await engine.execute_sql(sql)
                     if columns and rows:
                         answer_result = await engine.generate_answer(
                             query=question, sql=sql, columns=columns, rows=rows,
                         )
-                        if answer_result.get("answer"):
+                        nl_answer = answer_result.get("answer", "")
+                        if nl_answer:
                             print_answer(
-                                answer_result["answer"],
+                                nl_answer,
                                 answer_result.get("num_rows_used", len(rows)),
                                 answer_result.get("total_rows", len(rows)),
                             )
@@ -586,6 +590,7 @@ async def main():
                 engine._histories.append({
                     "question": question,
                     "sql": sql,
+                    "answer": nl_answer,
                 })
 
                 print()

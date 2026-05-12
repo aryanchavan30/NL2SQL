@@ -3,3 +3,6 @@
 __pycache__/
 faiss_indices/
 *.pyc
+.superpowers
+.claude
+CLAUDE.md

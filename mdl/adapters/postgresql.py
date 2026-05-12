@@ -1,5 +1,3 @@
-"""PostgreSQL adapter — asyncpg driver via SQLAlchemy async engine."""
-
 from __future__ import annotations
 
 from sqlalchemy import text

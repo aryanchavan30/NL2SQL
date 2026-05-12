@@ -94,7 +94,7 @@ async def lifespan(app: FastAPI):
     )
 
     # Init generation components
-    intent_classifier = IntentClassifier(llm=llm)
+    intent_classifier = IntentClassifier(llm=llm, force_sql=settings.intent_override.upper() == "SQL")
     sql_generator = SQLGenerator(llm=llm)
     sql_corrector = SQLCorrector(llm=llm)
     sql_validator = SQLValidator(adapter=adapter)

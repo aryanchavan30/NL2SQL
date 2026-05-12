@@ -12,7 +12,8 @@ class Settings(BaseSettings):
     )
 
     # ── Provider selection ───────────────────────────────────────────────
-    llm_provider: str = "groq"        # groq | openai | azure_openai
+    llm_provider: str = "groq"        # groq | openai | azure_openai | ollama
+    llm_mode: str = "api"             # api | local  (controls enrichment concurrency)
     embedding_provider: str = "ollama"  # ollama | openai | azure_openai
 
     # ── Groq (defaults so they're optional when using other providers) ───
@@ -22,6 +23,7 @@ class Settings(BaseSettings):
     # ── Ollama (defaults so they're optional when using other providers) ─
     ollama_base_url: str = "http://localhost:11434"
     ollama_embedding_model: str = "nomic-embed-text"
+    ollama_llm_model: str = "llama3.2"
 
     # ── OpenAI ───────────────────────────────────────────────────────────
     openai_api_key: str = ""
@@ -65,6 +67,9 @@ class Settings(BaseSettings):
     instructions_retrieval_max_size: int = 10
     max_sql_correction_retries: int = 3
 
+    # Intent override: set to "SQL" to skip LLM classification and always return TEXT_TO_SQL
+    intent_override: str = ""
+
     # Service cache
     ask_cache_maxsize: int = 1_000_000
     ask_cache_ttl: int = 120
@@ -91,7 +96,9 @@ class Settings(BaseSettings):
         errors: list[str] = []
 
         # LLM provider
-        if self.llm_provider == "groq":
+        if self.llm_provider == "ollama":
+            pass  # ollama_base_url has a default; no API key needed
+        elif self.llm_provider == "groq":
             if not self.groq_api_key:
                 errors.append("GROQ_API_KEY is required when LLM_PROVIDER=groq")
         elif self.llm_provider == "openai":
@@ -107,7 +114,7 @@ class Settings(BaseSettings):
         else:
             errors.append(
                 f"Unknown LLM_PROVIDER={self.llm_provider!r}. "
-                "Supported: groq, openai, azure_openai"
+                "Supported: groq, openai, azure_openai, ollama"
             )
 
         # Embedding provider

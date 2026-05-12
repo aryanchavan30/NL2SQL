@@ -1,12 +1,5 @@
-"""Factory functions for LLM and Embedding providers.
-
-Lazy imports so users only need the packages for their chosen provider.
-"""
-
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
-
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 
@@ -17,6 +10,16 @@ if TYPE_CHECKING:
 def create_llm(settings: Settings) -> BaseChatModel:
     """Create an LLM instance based on ``settings.llm_provider``."""
     provider = settings.llm_provider
+
+    if provider == "ollama":
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            base_url=f"{settings.ollama_base_url}/v1",
+            api_key="ollama",
+            model=settings.ollama_llm_model,
+            temperature=0,
+        )
 
     if provider == "groq":
         from langchain_groq import ChatGroq

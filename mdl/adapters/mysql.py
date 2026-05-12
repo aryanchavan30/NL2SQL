@@ -1,5 +1,3 @@
-"""MySQL adapter — aiomysql driver via SQLAlchemy async engine."""
-
 from __future__ import annotations
 
 from sqlalchemy import text

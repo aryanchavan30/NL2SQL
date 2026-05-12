@@ -15,7 +15,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique address identifier"
+            "description": "Unique identifier for each address."
           }
         },
         {
@@ -26,7 +26,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "First line of street address"
+            "description": "First line of the street address."
           }
         },
         {
@@ -37,7 +37,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Second line of street address"
+            "description": "Second line of the street address (if applicable)."
           }
         },
         {
@@ -48,7 +48,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Identifier of the city"
+            "description": "Foreign key referencing the city where the address is located."
           }
         },
         {
@@ -59,7 +59,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Postal code of the address"
+            "description": "Postal code associated with the address."
           }
         },
         {
@@ -70,14 +70,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Indicates if address is default"
+            "description": "Flag indicating if this address is the default for an entity."
           }
         }
       ],
       "primaryKey": "address_id",
       "properties": {
         "displayName": "Addresses",
-        "description": "Stores physical addresses"
+        "description": "Stores physical addresses for various entities."
       }
     },
     {
@@ -92,7 +92,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique event identifier"
+            "description": "Unique identifier for each event"
           }
         },
         {
@@ -103,7 +103,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User who triggered the event"
+            "description": "Identifier of the user who performed the action"
           }
         },
         {
@@ -114,7 +114,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Session identifier"
+            "description": "Identifier of the session in which the event occurred"
           }
         },
         {
@@ -125,7 +125,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Type of event occurred"
+            "description": "Type of event (e.g. page view, add to cart)"
           }
         },
         {
@@ -136,7 +136,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Page where event occurred"
+            "description": "URL of the page on which the event occurred"
           }
         },
         {
@@ -147,7 +147,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product related to the event"
+            "description": "Identifier of the product involved in the event"
           }
         },
         {
@@ -158,7 +158,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Additional event details"
+            "description": "Additional metadata about the event"
           }
         },
         {
@@ -169,14 +169,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Event timestamp"
+            "description": "Timestamp when the event occurred"
           }
         }
       ],
       "primaryKey": "event_id",
       "properties": {
         "displayName": "Analytics Events",
-        "description": "Stores user interaction events"
+        "description": "Stores user interactions and events on the platform"
       }
     },
     {
@@ -191,7 +191,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique log entry id"
+            "description": "Unique identifier for each log entry"
           }
         },
         {
@@ -202,7 +202,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User who made the change"
+            "description": "ID of the user who performed the operation"
           }
         },
         {
@@ -213,7 +213,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Type of action performed"
+            "description": "Type of operation (CREATE, UPDATE, DELETE)"
           }
         },
         {
@@ -224,7 +224,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Table where change occurred"
+            "description": "Name of the table affected by the operation"
           }
         },
         {
@@ -235,7 +235,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Id of changed record"
+            "description": "ID of the record affected by the operation"
           }
         },
         {
@@ -246,7 +246,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Previous record values"
+            "description": "Old values of the record before the operation"
           }
         },
         {
@@ -257,7 +257,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "New record values"
+            "description": "New values of the record after the operation"
           }
         },
         {
@@ -268,7 +268,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User's ip address"
+            "description": "IP address of the user's device that performed the operation"
           }
         },
         {
@@ -279,14 +279,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Timestamp of change"
+            "description": "Timestamp when the operation occurred"
           }
         }
       ],
       "primaryKey": "log_id",
       "properties": {
         "displayName": "Audit Log",
-        "description": "Stores system change history"
+        "description": "Log of all database operations performed by users"
       }
     },
     {
@@ -301,7 +301,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique brand identifier"
+            "description": "Unique identifier for each brand"
           }
         },
         {
@@ -312,7 +312,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Brand name"
+            "description": "Brand name as it appears in public domain"
           }
         },
         {
@@ -323,7 +323,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Brand website"
+            "description": "Official website URL of the brand"
           }
         },
         {
@@ -334,7 +334,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Brand logo URL"
+            "description": "URL of the brand's logo image (if available)"
           }
         },
         {
@@ -345,14 +345,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Country of origin"
+            "description": "Identifier referencing the country where the brand is based"
           }
         }
       ],
       "primaryKey": "brand_id",
       "properties": {
         "displayName": "Brands",
-        "description": "Stores brand information"
+        "description": "List of brands with their details and country affiliations"
       }
     },
     {
@@ -367,7 +367,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique item identifier"
+            "description": "Unique identifier for each item in the cart."
           }
         },
         {
@@ -378,7 +378,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Cart that item belongs to"
+            "description": "Identifier of the parent shopping cart."
           }
         },
         {
@@ -389,7 +389,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product variant in cart"
+            "description": "Product variant being added to the cart."
           }
         },
         {
@@ -400,7 +400,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Quantity of item"
+            "description": "Quantity of the product variant in the cart."
           }
         },
         {
@@ -411,14 +411,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Time item was added"
+            "description": "Timestamp when the item was added to the cart."
           }
         }
       ],
       "primaryKey": "cart_item_id",
       "properties": {
         "displayName": "Cart Items",
-        "description": "Stores items in a shopping cart"
+        "description": "Stores items in a customer's shopping cart."
       }
     },
     {
@@ -433,7 +433,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique cart identifier"
+            "description": "Unique identifier for each cart"
           }
         },
         {
@@ -444,7 +444,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User who owns the cart"
+            "description": "Foreign key referencing the user who owns this cart"
           }
         },
         {
@@ -455,7 +455,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Cart creation time"
+            "description": "Timestamp when the cart was created"
           }
         },
         {
@@ -466,14 +466,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Cart last update time"
+            "description": "Timestamp when the cart was last updated"
           }
         }
       ],
       "primaryKey": "cart_id",
       "properties": {
         "displayName": "Carts",
-        "description": "Stores user shopping carts"
+        "description": "Stores information about user shopping carts"
       }
     },
     {
@@ -488,7 +488,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique category identifier"
+            "description": "Unique identifier for each category"
           }
         },
         {
@@ -499,7 +499,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Parent category identifier"
+            "description": "Reference to parent category, if any"
           }
         },
         {
@@ -510,7 +510,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Category name"
+            "description": "Human-readable name for the category"
           }
         },
         {
@@ -521,7 +521,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Category URL slug"
+            "description": "URL-friendly slug for the category"
           }
         },
         {
@@ -532,14 +532,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Category description"
+            "description": "Optional description of the category"
           }
         }
       ],
       "primaryKey": "category_id",
       "properties": {
         "displayName": "Categories",
-        "description": "Stores product categories"
+        "description": "List of top-level categories for product organization"
       }
     },
     {
@@ -554,7 +554,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique city identifier"
+            "description": "Unique identifier for each city"
           }
         },
         {
@@ -565,7 +565,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Region where city is located"
+            "description": "Identifier referencing the region this city belongs to"
           }
         },
         {
@@ -576,7 +576,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "City name"
+            "description": "Name of the city"
           }
         },
         {
@@ -587,14 +587,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "City zip code"
+            "description": "Zip code associated with the city"
           }
         }
       ],
       "primaryKey": "city_id",
       "properties": {
         "displayName": "Cities",
-        "description": "Stores city information"
+        "description": "List of cities with their corresponding region and zip code information"
       }
     },
     {
@@ -609,7 +609,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique country identifier"
+            "description": "Unique identifier for each country"
           }
         },
         {
@@ -620,7 +620,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Country code"
+            "description": "Two-letter code for the country (e.g., US, GB)"
           }
         },
         {
@@ -631,7 +631,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Country name"
+            "description": "Full name of the country"
           }
         },
         {
@@ -642,7 +642,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Country phone prefix"
+            "description": "Phone prefix used in the country (e.g., +1 for US)"
           }
         },
         {
@@ -653,14 +653,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Creation timestamp"
+            "description": "Timestamp when the country record was created"
           }
         }
       ],
       "primaryKey": "country_id",
       "properties": {
         "displayName": "Countries",
-        "description": "Stores country information"
+        "description": "List of countries with their codes, names and phone prefixes."
       }
     },
     {
@@ -675,7 +675,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique coupon identifier"
+            "description": "Unique identifier for each coupon"
           }
         },
         {
@@ -686,7 +686,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Coupon code"
+            "description": "Coupon code used by customers to apply the discount"
           }
         },
         {
@@ -697,7 +697,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Type of discount"
+            "description": "Type of discount offered, either percentage or fixed amount"
           }
         },
         {
@@ -708,7 +708,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Discount amount"
+            "description": "Actual value of the discount applied"
           }
         },
         {
@@ -719,7 +719,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Minimum order amount"
+            "description": "Minimum order amount required to use this coupon"
           }
         },
         {
@@ -730,7 +730,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Maximum uses allowed"
+            "description": "Maximum number of times this coupon can be used"
           }
         },
         {
@@ -741,7 +741,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Number of times used"
+            "description": "Number of times this coupon has been used so far"
           }
         },
         {
@@ -752,7 +752,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Coupon expiration date"
+            "description": "Date when this coupon will expire and become inactive"
           }
         },
         {
@@ -763,14 +763,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Coupon status"
+            "description": "Flag indicating whether the coupon is currently active or not"
           }
         }
       ],
       "primaryKey": "coupon_id",
       "properties": {
         "displayName": "Coupons",
-        "description": "Stores coupon information"
+        "description": "Stores information about available coupons and their usage."
       }
     },
     {
@@ -785,7 +785,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique template identifier"
+            "description": "Unique identifier for each template"
           }
         },
         {
@@ -796,7 +796,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Template name"
+            "description": "Name of the email template (e.g., welcome, order_confirmed)"
           }
         },
         {
@@ -807,7 +807,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Email subject line"
+            "description": "Subject line for the email"
           }
         },
         {
@@ -818,7 +818,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Email body content"
+            "description": "HTML content for the email body"
           }
         },
         {
@@ -829,7 +829,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Template status"
+            "description": "Flag indicating whether the template is currently active"
           }
         },
         {
@@ -840,14 +840,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Last update timestamp"
+            "description": "Timestamp when the template was last updated"
           }
         }
       ],
       "primaryKey": "template_id",
       "properties": {
         "displayName": "Email Templates",
-        "description": "Stores email templates for various scenarios"
+        "description": "Stores email templates for various events and notifications."
       }
     },
     {
@@ -862,7 +862,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique inventory identifier"
+            "description": "Unique identifier for each inventory record."
           }
         },
         {
@@ -873,7 +873,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product variant ID"
+            "description": "Identifier of the product variant being inventoried."
           }
         },
         {
@@ -884,7 +884,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Warehouse location ID"
+            "description": "Identifier of the warehouse where the inventory is stored."
           }
         },
         {
@@ -895,7 +895,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Available quantity"
+            "description": "Current quantity of the product in stock at this warehouse."
           }
         },
         {
@@ -906,7 +906,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Quantity reserved"
+            "description": "Quantity of the product reserved for other purposes."
           }
         },
         {
@@ -917,14 +917,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Last update timestamp"
+            "description": "Timestamp when the inventory record was last updated."
           }
         }
       ],
       "primaryKey": "inventory_id",
       "properties": {
         "displayName": "Inventory",
-        "description": "Tracks product inventory levels"
+        "description": "Stores inventory quantities by variant and warehouse."
       }
     },
     {
@@ -939,7 +939,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique notification ID"
+            "description": "Unique identifier for each notification"
           }
         },
         {
@@ -950,7 +950,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User who received notification"
+            "description": "Foreign key referencing the user who received this notification"
           }
         },
         {
@@ -961,7 +961,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Notification type"
+            "description": "Type of notification (e.g. order shipped, coupon expiring)"
           }
         },
         {
@@ -972,7 +972,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Notification title"
+            "description": "Brief title summarizing the notification"
           }
         },
         {
@@ -983,7 +983,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Notification details"
+            "description": "Detailed message describing the notification"
           }
         },
         {
@@ -994,7 +994,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "If notification is read"
+            "description": "Indicates whether the user has read this notification"
           }
         },
         {
@@ -1005,14 +1005,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "When notification was sent"
+            "description": "Timestamp when this notification was created"
           }
         }
       ],
       "primaryKey": "notification_id",
       "properties": {
         "displayName": "Notifications",
-        "description": "Stores user notifications"
+        "description": "Stores user notifications, including order updates and review approvals."
       }
     },
     {
@@ -1027,7 +1027,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique item identifier"
+            "description": "Unique identifier for each item in the order"
           }
         },
         {
@@ -1038,7 +1038,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Order this item belongs to"
+            "description": "Identifier of the parent order this item belongs to"
           }
         },
         {
@@ -1049,7 +1049,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product variant identifier"
+            "description": "Identifier of the specific product variant being ordered"
           }
         },
         {
@@ -1060,7 +1060,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Quantity of item ordered"
+            "description": "Quantity of the item being ordered"
           }
         },
         {
@@ -1071,7 +1071,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Price per item"
+            "description": "Price per unit of the item being ordered"
           }
         },
         {
@@ -1082,14 +1082,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Total cost of item"
+            "description": "Total cost for this item in the order"
           }
         }
       ],
       "primaryKey": "order_item_id",
       "properties": {
         "displayName": "Order Items",
-        "description": "Stores items in customer orders"
+        "description": "Stores individual items within an order, including product variant and pricing information."
       }
     },
     {
@@ -1104,7 +1104,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique order identifier"
+            "description": "Unique identifier for each order"
           }
         },
         {
@@ -1115,7 +1115,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Customer who made the order"
+            "description": "Identifier of the user who placed the order"
           }
         },
         {
@@ -1126,7 +1126,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Applied coupon if any"
+            "description": "Identifier of any coupon used during checkout"
           }
         },
         {
@@ -1137,7 +1137,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Shipping address for the order"
+            "description": "Identifier of the shipping address associated with this order"
           }
         },
         {
@@ -1148,7 +1148,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Current order status"
+            "description": "Current status of the order (e.g. delivered, shipped, pending)"
           }
         },
         {
@@ -1159,7 +1159,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Total before tax and shipping"
+            "description": "Total cost of items in the order before taxes and discounts"
           }
         },
         {
@@ -1170,7 +1170,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Discount applied to the order"
+            "description": "Amount of discount applied to the order"
           }
         },
         {
@@ -1181,7 +1181,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Shipping cost for the order"
+            "description": "Cost of shipping for this order"
           }
         },
         {
@@ -1192,7 +1192,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Tax amount for the order"
+            "description": "Tax amount for this order"
           }
         },
         {
@@ -1203,7 +1203,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Total cost of the order"
+            "description": "Final total cost of the order, including taxes and discounts"
           }
         },
         {
@@ -1214,7 +1214,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Additional order notes"
+            "description": "Any additional notes or comments about the order"
           }
         },
         {
@@ -1225,7 +1225,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Order creation timestamp"
+            "description": "Timestamp when the order was created"
           }
         },
         {
@@ -1236,14 +1236,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Order last update timestamp"
+            "description": "Timestamp when the order status was last updated"
           }
         }
       ],
       "primaryKey": "order_id",
       "properties": {
         "displayName": "Orders",
-        "description": "Stores customer orders and their details"
+        "description": "Table storing information about customer orders, including order status and financial details."
       }
     },
     {
@@ -1258,7 +1258,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique payment identifier"
+            "description": "Unique identifier for each payment"
           }
         },
         {
@@ -1269,7 +1269,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Associated order identifier"
+            "description": "Identifier of the order associated with this payment"
           }
         },
         {
@@ -1280,7 +1280,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Payment method used"
+            "description": "Payment method used (e.g. credit card, paypal)"
           }
         },
         {
@@ -1291,7 +1291,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Current payment status"
+            "description": "Current status of the payment (e.g. completed, pending, refunded)"
           }
         },
         {
@@ -1302,7 +1302,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Payment amount"
+            "description": "Total amount paid by the customer"
           }
         },
         {
@@ -1313,7 +1313,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "External transaction identifier"
+            "description": "Unique identifier for the transaction"
           }
         },
         {
@@ -1324,14 +1324,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Date and time payment was made"
+            "description": "Date and time when the payment was made"
           }
         }
       ],
       "primaryKey": "payment_id",
       "properties": {
         "displayName": "Payments",
-        "description": "Stores payment information for orders"
+        "description": "Stores payment information for completed and pending orders."
       }
     },
     {
@@ -1346,7 +1346,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique image identifier"
+            "description": "Unique identifier for each image"
           }
         },
         {
@@ -1357,7 +1357,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product associated with image"
+            "description": "Foreign key referencing the parent products table"
           }
         },
         {
@@ -1368,7 +1368,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Image location"
+            "description": "URL of the image file"
           }
         },
         {
@@ -1379,7 +1379,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Image description"
+            "description": "Alternative text describing the image content"
           }
         },
         {
@@ -1390,7 +1390,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Display order"
+            "description": "Determines the display order of images for a product"
           }
         },
         {
@@ -1401,14 +1401,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Main image indicator"
+            "description": "Indicates whether this is the primary image for a product"
           }
         }
       ],
       "primaryKey": "image_id",
       "properties": {
         "displayName": "Product Images",
-        "description": "Stores product images"
+        "description": "Stores product images with their URLs, alt text, and sort order."
       }
     },
     {
@@ -1441,7 +1441,7 @@
       "primaryKey": "product_id",
       "properties": {
         "displayName": "Product Tags",
-        "description": "Product tag associations"
+        "description": "Associations between products and tags"
       }
     },
     {
@@ -1456,7 +1456,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique variant identifier"
+            "description": "Unique identifier for each variant"
           }
         },
         {
@@ -1467,7 +1467,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Parent product identifier"
+            "description": "Identifier of the parent product this variant belongs to"
           }
         },
         {
@@ -1478,7 +1478,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Variant name"
+            "description": "Name of the product variant"
           }
         },
         {
@@ -1489,7 +1489,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Stock keeping unit suffix"
+            "description": "Suffix of the SKU for this product variant"
           }
         },
         {
@@ -1500,7 +1500,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Price difference from base product"
+            "description": "Price difference of this variant compared to its parent product"
           }
         },
         {
@@ -1511,14 +1511,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Quantity in stock"
+            "description": "Current stock quantity of this product variant"
           }
         }
       ],
       "primaryKey": "variant_id",
       "properties": {
         "displayName": "Product Variants",
-        "description": "Stores product variant details"
+        "description": "Stores product variants with their names, SKUs, prices, and stock quantities."
       }
     },
     {
@@ -1533,7 +1533,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique product identifier"
+            "description": "Unique identifier for each product"
           }
         },
         {
@@ -1544,7 +1544,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product category"
+            "description": "Foreign key referencing the category this product belongs to"
           }
         },
         {
@@ -1555,7 +1555,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product brand"
+            "description": "Foreign key referencing the brand that manufactured this product"
           }
         },
         {
@@ -1566,7 +1566,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product name"
+            "description": "Product name as it appears in the catalog"
           }
         },
         {
@@ -1577,7 +1577,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product URL slug"
+            "description": "Shortened version of the product name, used for URLs and search"
           }
         },
         {
@@ -1588,7 +1588,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product details"
+            "description": "Detailed description of the product's features and benefits"
           }
         },
         {
@@ -1599,7 +1599,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product base price"
+            "description": "Base price of the product before any discounts or promotions"
           }
         },
         {
@@ -1610,7 +1610,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product stock keeping unit"
+            "description": "Stock-keeping unit number, used to track inventory levels"
           }
         },
         {
@@ -1621,7 +1621,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product status"
+            "description": "Flag indicating whether this product is currently available for sale"
           }
         },
         {
@@ -1632,14 +1632,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product creation date"
+            "description": "Timestamp when this product was first created in the system"
           }
         }
       ],
       "primaryKey": "product_id",
       "properties": {
         "displayName": "Products",
-        "description": "Stores product information"
+        "description": "Table storing product information, including details like name, description, price, and status."
       }
     },
     {
@@ -1654,7 +1654,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Item identifier"
+            "description": "Unique identifier for each item"
           }
         },
         {
@@ -1665,7 +1665,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Purchase order identifier"
+            "description": "Identifier of the parent purchase order"
           }
         },
         {
@@ -1676,7 +1676,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product variant identifier"
+            "description": "Identifier of the product variant being ordered"
           }
         },
         {
@@ -1687,7 +1687,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Quantity ordered"
+            "description": "Quantity of the product variant being ordered"
           }
         },
         {
@@ -1698,14 +1698,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Cost per unit"
+            "description": "Cost per unit of the product variant"
           }
         }
       ],
       "primaryKey": "poi_id",
       "properties": {
         "displayName": "Purchase Order Items",
-        "description": "Stores items in a purchase order"
+        "description": "Stores individual items within a purchase order."
       }
     },
     {
@@ -1720,7 +1720,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique order identifier"
+            "description": "Unique identifier for each purchase order"
           }
         },
         {
@@ -1731,7 +1731,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Supplier of the order"
+            "description": "Identifier of the supplier for this purchase order"
           }
         },
         {
@@ -1742,7 +1742,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Destination warehouse"
+            "description": "Identifier of the warehouse where items will be stored"
           }
         },
         {
@@ -1753,7 +1753,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Current order status"
+            "description": "Current status of the purchase order (received, pending, shipped)"
           }
         },
         {
@@ -1764,7 +1764,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Total cost of the order"
+            "description": "Total cost of all items in this purchase order"
           }
         },
         {
@@ -1775,7 +1775,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Order placement timestamp"
+            "description": "Date and time when the purchase order was placed"
           }
         },
         {
@@ -1786,14 +1786,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Expected delivery date"
+            "description": "Expected delivery date for this purchase order"
           }
         }
       ],
       "primaryKey": "po_id",
       "properties": {
         "displayName": "Purchase Orders",
-        "description": "Stores purchase order information"
+        "description": "Stores purchase orders with supplier and warehouse information"
       }
     },
     {
@@ -1808,7 +1808,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique region identifier"
+            "description": "Unique identifier for each region"
           }
         },
         {
@@ -1819,7 +1819,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Country identifier"
+            "description": "Foreign key referencing the country this region belongs to"
           }
         },
         {
@@ -1830,7 +1830,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Region name"
+            "description": "Human-readable name of the region"
           }
         },
         {
@@ -1841,14 +1841,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Region code"
+            "description": "Short code representing the region"
           }
         }
       ],
       "primaryKey": "region_id",
       "properties": {
         "displayName": "Regions",
-        "description": "Stores geographic regions"
+        "description": "Geographic regions within countries"
       }
     },
     {
@@ -1863,7 +1863,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique return identifier"
+            "description": "Unique identifier for each return"
           }
         },
         {
@@ -1874,7 +1874,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Related order item"
+            "description": "Identifier of the order item being returned"
           }
         },
         {
@@ -1885,7 +1885,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Return reason"
+            "description": "Reason provided by customer for returning the item"
           }
         },
         {
@@ -1896,7 +1896,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Return status"
+            "description": "Current status of the return request (e.g. completed, processing)"
           }
         },
         {
@@ -1907,7 +1907,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Refund amount"
+            "description": "Amount to be refunded to the customer"
           }
         },
         {
@@ -1918,7 +1918,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Return request date"
+            "description": "Timestamp when the return was requested"
           }
         },
         {
@@ -1929,14 +1929,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Return resolution date"
+            "description": "Timestamp when the return was resolved"
           }
         }
       ],
       "primaryKey": "return_id",
       "properties": {
         "displayName": "Returns",
-        "description": "Stores return requests and their status"
+        "description": "Table to store return information for customer orders"
       }
     },
     {
@@ -1951,7 +1951,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique review identifier"
+            "description": "Unique identifier for each review"
           }
         },
         {
@@ -1962,7 +1962,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product being reviewed"
+            "description": "Identifier for the product being reviewed"
           }
         },
         {
@@ -1973,7 +1973,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User who wrote the review"
+            "description": "Identifier for the user who wrote the review"
           }
         },
         {
@@ -1984,7 +1984,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Review rating"
+            "description": "Customer rating out of 5 for the product"
           }
         },
         {
@@ -1995,7 +1995,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Review title"
+            "description": "Brief title summarizing the review"
           }
         },
         {
@@ -2006,7 +2006,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Review text"
+            "description": "Detailed comment from the customer"
           }
         },
         {
@@ -2017,7 +2017,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Verified purchase"
+            "description": "Flag indicating if the review is verified or not"
           }
         },
         {
@@ -2028,14 +2028,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Review creation date"
+            "description": "Timestamp when the review was created"
           }
         }
       ],
       "primaryKey": "review_id",
       "properties": {
         "displayName": "Reviews",
-        "description": "Stores customer reviews of products"
+        "description": "Table storing customer reviews of products with ratings and comments."
       }
     },
     {
@@ -2050,7 +2050,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique role identifier"
+            "description": "Unique identifier for each role"
           }
         },
         {
@@ -2061,7 +2061,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Role name"
+            "description": "Name of the role, e.g. admin or customer"
           }
         },
         {
@@ -2072,14 +2072,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Role description"
+            "description": "Detailed description of the role's responsibilities"
           }
         }
       ],
       "primaryKey": "role_id",
       "properties": {
         "displayName": "Roles",
-        "description": "Stores user roles and permissions"
+        "description": "List of predefined roles within the system"
       }
     },
     {
@@ -2094,7 +2094,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique shipment identifier"
+            "description": "Unique identifier for each shipment"
           }
         },
         {
@@ -2105,7 +2105,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Associated order identifier"
+            "description": "Identifier of the related order"
           }
         },
         {
@@ -2116,7 +2116,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Warehouse where shipped from"
+            "description": "Identifier of the warehouse where the item was shipped from"
           }
         },
         {
@@ -2127,7 +2127,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Shipping carrier name"
+            "description": "Company responsible for transporting the shipment"
           }
         },
         {
@@ -2138,7 +2138,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Tracking number for shipment"
+            "description": "Unique number assigned to track the shipment"
           }
         },
         {
@@ -2149,7 +2149,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Date and time shipped"
+            "description": "Date and time when the shipment was sent out"
           }
         },
         {
@@ -2160,7 +2160,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Date and time delivered"
+            "description": "Date and time when the shipment was delivered, if applicable"
           }
         },
         {
@@ -2171,14 +2171,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Current shipment status"
+            "description": "Current status of the shipment"
           }
         }
       ],
       "primaryKey": "shipment_id",
       "properties": {
         "displayName": "Shipments",
-        "description": "Stores shipment details and status"
+        "description": "Stores information about shipments, including order details and delivery status."
       }
     },
     {
@@ -2193,7 +2193,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique supplier identifier"
+            "description": "Unique identifier for each supplier"
           }
         },
         {
@@ -2215,7 +2215,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Supplier contact person"
+            "description": "Name of the person to contact at the supplier"
           }
         },
         {
@@ -2226,7 +2226,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Supplier email address"
+            "description": "Email address of the supplier's contact person"
           }
         },
         {
@@ -2237,7 +2237,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Supplier phone number"
+            "description": "Phone number of the supplier's contact person"
           }
         },
         {
@@ -2248,14 +2248,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Supplier country identifier"
+            "description": "Reference to the country where the supplier is located"
           }
         }
       ],
       "primaryKey": "supplier_id",
       "properties": {
         "displayName": "Suppliers",
-        "description": "Stores supplier information"
+        "description": "List of suppliers with their contact information and country affiliation."
       }
     },
     {
@@ -2270,7 +2270,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique ticket identifier"
+            "description": "Unique identifier for each ticket"
           }
         },
         {
@@ -2281,7 +2281,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Customer who submitted the ticket"
+            "description": "ID of the customer who created the ticket"
           }
         },
         {
@@ -2292,7 +2292,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Support agent assigned to the ticket"
+            "description": "ID of the support agent assigned to this ticket"
           }
         },
         {
@@ -2303,7 +2303,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Related order identifier"
+            "description": "ID of the related order"
           }
         },
         {
@@ -2314,7 +2314,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Ticket subject or summary"
+            "description": "Brief description of the issue or problem"
           }
         },
         {
@@ -2325,7 +2325,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Current ticket status"
+            "description": "Current status of the ticket (e.g. open, closed)"
           }
         },
         {
@@ -2336,7 +2336,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Ticket priority level"
+            "description": "Priority level of the ticket (e.g. high, low)"
           }
         },
         {
@@ -2347,7 +2347,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Ticket creation timestamp"
+            "description": "Timestamp when the ticket was created"
           }
         },
         {
@@ -2358,14 +2358,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Ticket closure timestamp"
+            "description": "Timestamp when the ticket was closed"
           }
         }
       ],
       "primaryKey": "ticket_id",
       "properties": {
         "displayName": "Support Tickets",
-        "description": "Stores customer support tickets"
+        "description": "Table storing information about support tickets, including user details and order associations."
       }
     },
     {
@@ -2380,7 +2380,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique tag identifier"
+            "description": "Unique identifier for each tag"
           }
         },
         {
@@ -2391,7 +2391,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Tag name"
+            "description": "Name of the product tag"
           }
         },
         {
@@ -2402,14 +2402,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Tag slug"
+            "description": "Shortened name for URL purposes"
           }
         }
       ],
       "primaryKey": "tag_id",
       "properties": {
         "displayName": "Tags",
-        "description": "Stores product tags"
+        "description": "List of product tags with unique identifiers and names"
       }
     },
     {
@@ -2424,7 +2424,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique message identifier"
+            "description": "Unique identifier for each message."
           }
         },
         {
@@ -2435,7 +2435,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Associated ticket identifier"
+            "description": "Identifier of the ticket this message belongs to."
           }
         },
         {
@@ -2446,7 +2446,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User who sent the message"
+            "description": "User ID of the person who sent this message."
           }
         },
         {
@@ -2457,7 +2457,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Message content"
+            "description": "Content of the message."
           }
         },
         {
@@ -2468,14 +2468,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Message creation timestamp"
+            "description": "Timestamp when the message was created."
           }
         }
       ],
       "primaryKey": "message_id",
       "properties": {
         "displayName": "Ticket Messages",
-        "description": "Stores messages related to support tickets"
+        "description": "Stores messages related to support tickets."
       }
     },
     {
@@ -2490,7 +2490,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique address association ID"
+            "description": "Unique identifier for each address record"
           }
         },
         {
@@ -2501,7 +2501,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User identifier"
+            "description": "Identifier of the user this address belongs to"
           }
         },
         {
@@ -2512,7 +2512,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Address identifier"
+            "description": "Identifier of the physical address itself"
           }
         },
         {
@@ -2523,14 +2523,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Address type"
+            "description": "Type or label assigned to the address, such as Home or Work"
           }
         }
       ],
       "primaryKey": "user_address_id",
       "properties": {
         "displayName": "User Addresses",
-        "description": "Stores user address associations"
+        "description": "Stores addresses associated with users"
       }
     },
     {
@@ -2545,7 +2545,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique user identifier"
+            "description": "Unique identifier for each user."
           }
         },
         {
@@ -2556,7 +2556,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User role or position"
+            "description": "Identifier of the role assigned to this user."
           }
         },
         {
@@ -2567,7 +2567,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User first name"
+            "description": "User's first name."
           }
         },
         {
@@ -2578,7 +2578,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User last name"
+            "description": "User's last name."
           }
         },
         {
@@ -2589,7 +2589,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User email address"
+            "description": "User's email address."
           }
         },
         {
@@ -2600,7 +2600,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "User phone number"
+            "description": "User's phone number."
           }
         },
         {
@@ -2611,7 +2611,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Secure password storage"
+            "description": "Hashed password for authentication purposes."
           }
         },
         {
@@ -2622,7 +2622,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Account status"
+            "description": "Indicates whether the user account is active or not."
           }
         },
         {
@@ -2633,14 +2633,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Account creation date"
+            "description": "Timestamp when the user account was created."
           }
         }
       ],
       "primaryKey": "user_id",
       "properties": {
         "displayName": "Users",
-        "description": "Stores user information and account details"
+        "description": "Stores information about registered users."
       }
     },
     {
@@ -2655,7 +2655,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique warehouse identifier"
+            "description": "Unique identifier for each warehouse"
           }
         },
         {
@@ -2666,7 +2666,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Warehouse name"
+            "description": "Name of the warehouse"
           }
         },
         {
@@ -2677,7 +2677,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Linked address identifier"
+            "description": "Reference to the warehouse's physical address"
           }
         },
         {
@@ -2688,14 +2688,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Warehouse status"
+            "description": "Status indicating whether the warehouse is currently operational"
           }
         }
       ],
       "primaryKey": "warehouse_id",
       "properties": {
         "displayName": "Warehouses",
-        "description": "Stores warehouse information"
+        "description": "List of company warehouses with their status and address"
       }
     },
     {
@@ -2710,7 +2710,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique item identifier"
+            "description": "Unique ID for each wishlist item"
           }
         },
         {
@@ -2721,7 +2721,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Wishlist identifier"
+            "description": "ID of the wishlist this item belongs to"
           }
         },
         {
@@ -2732,7 +2732,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Product identifier"
+            "description": "ID of the product being added to a wishlist"
           }
         },
         {
@@ -2743,14 +2743,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Item added timestamp"
+            "description": "Timestamp when the item was added"
           }
         }
       ],
       "primaryKey": "wishlist_item_id",
       "properties": {
         "displayName": "Wishlist Items",
-        "description": "Stores items in a wishlist"
+        "description": "List of items added to user wishlists"
       }
     },
     {
@@ -2765,7 +2765,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Unique wishlist identifier"
+            "description": "Unique identifier for each wishlist"
           }
         },
         {
@@ -2776,7 +2776,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Owner of the wishlist"
+            "description": "Foreign key referencing the user who created this wishlist"
           }
         },
         {
@@ -2787,7 +2787,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Wishlist name"
+            "description": "Name given to this wishlist by its creator"
           }
         },
         {
@@ -2798,7 +2798,7 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Visibility of the wishlist"
+            "description": "Indicates whether this wishlist is publicly visible or not"
           }
         },
         {
@@ -2809,14 +2809,14 @@
           "isHidden": false,
           "expression": null,
           "properties": {
-            "description": "Wishlist creation date"
+            "description": "Timestamp when this wishlist was created"
           }
         }
       ],
       "primaryKey": "wishlist_id",
       "properties": {
         "displayName": "Wishlists",
-        "description": "Stores user wishlists"
+        "description": "Stores user-created wishlists with items and public visibility."
       }
     }
   ],

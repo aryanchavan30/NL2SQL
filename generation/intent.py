@@ -17,8 +17,9 @@ logger = logging.getLogger("nl2sql")
 class IntentClassifier:
     """Classifies user query intent: TEXT_TO_SQL | MISLEADING_QUERY | GENERAL."""
 
-    def __init__(self, llm: BaseChatModel):
+    def __init__(self, llm: BaseChatModel, force_sql: bool = False):
         self._llm = llm
+        self._force_sql = force_sql
         self._user_template = Template(INTENT_CLASSIFICATION_USER_TEMPLATE)
 
     async def run(
@@ -48,9 +49,10 @@ class IntentClassifier:
             )
 
             result = orjson.loads(response.content)
+            intent = "TEXT_TO_SQL" if self._force_sql else result.get("results", "TEXT_TO_SQL")
             return {
                 "rephrased_question": result.get("rephrased_question", query),
-                "intent": result.get("results", "TEXT_TO_SQL"),
+                "intent": intent,
                 "reasoning": result.get("reasoning", ""),
             }
         except Exception as e:

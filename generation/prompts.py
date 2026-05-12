@@ -234,12 +234,11 @@ SQL:
 
 ### INPUT ###
 {% if histories %}
-User's previous questions:
+Previous conversation:
 {% for history in histories %}
-Question:
-{{ history.question }}
-SQL:
-{{ history.sql }}
+Question: {{ history.question }}
+Answer: {{ history.answer }}
+SQL: {{ history.sql }}
 {% endfor %}
 {% endif %}
 

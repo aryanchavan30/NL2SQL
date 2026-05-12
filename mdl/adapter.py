@@ -1,7 +1,3 @@
-"""
-DatabaseAdapter ABC, SyncDatabaseAdapter wrapper, and create_adapter() factory.
-"""
-
 from __future__ import annotations
 
 import asyncio

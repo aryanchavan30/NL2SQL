@@ -1,5 +1,3 @@
-"""Microsoft SQL Server adapter — aioodbc driver via SQLAlchemy async engine."""
-
 from __future__ import annotations
 
 from sqlalchemy import text

@@ -1,5 +1,3 @@
-"""BigQuery adapter — sync driver wrapped via SyncDatabaseAdapter."""
-
 from __future__ import annotations
 
 import asyncio

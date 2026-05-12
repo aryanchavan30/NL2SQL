@@ -254,7 +254,11 @@ POST /v1/asks
   "query": "What are the top 5 products by revenue?",
   "project_id": "default",
   "histories": [
-    {"question": "show all products", "sql": "SELECT * FROM products"}
+    {
+      "question": "show all products",
+      "sql": "SELECT * FROM products",
+      "answer": "There are 77 products in total."
+    }
   ]
 }
 ```
@@ -381,7 +385,8 @@ All settings are in `config.py` and read from `.env`. Every setting has a sensib
 
 | Variable                 | Default                     | Description                     |
 |--------------------------|-----------------------------|---------------------------------|
-| `LLM_PROVIDER`           | `groq`                      | LLM provider: `groq`, `openai`, `azure_openai` |
+| `LLM_PROVIDER`           | `groq`                      | LLM provider: `groq`, `openai`, `azure_openai`, `ollama` |
+| `LLM_MODE`               | `api`                       | `api` = concurrent MDL enrichment (fast, for API providers); `local` = sequential (for local Ollama LLM) |
 | `EMBEDDING_PROVIDER`     | `ollama`                    | Embedding provider: `ollama`, `openai`, `azure_openai` |
 | `EMBEDDING_DIMENSION`    | `768`                       | Vector dimensionality (768 for nomic-embed-text, 1536 for OpenAI text-embedding-3-small) |
 
@@ -392,12 +397,13 @@ All settings are in `config.py` and read from `.env`. Every setting has a sensib
 | `GROQ_API_KEY`  | *(required)*               | Groq API key       |
 | `GROQ_MODEL`    | `llama-3.3-70b-versatile`  | Groq model name    |
 
-### Ollama Settings (when `EMBEDDING_PROVIDER=ollama`)
+### Ollama Settings (when `LLM_PROVIDER=ollama` or `EMBEDDING_PROVIDER=ollama`)
 
 | Variable                 | Default                   | Description              |
 |--------------------------|---------------------------|--------------------------|
 | `OLLAMA_BASE_URL`        | `http://localhost:11434`  | Ollama server URL        |
-| `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text`        | Embedding model name     |
+| `OLLAMA_LLM_MODEL`       | `llama3.2`                | LLM model name (when `LLM_PROVIDER=ollama`) |
+| `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text`        | Embedding model name (when `EMBEDDING_PROVIDER=ollama`) |
 
 ### OpenAI Settings (when `LLM_PROVIDER=openai` or `EMBEDDING_PROVIDER=openai`)
 
@@ -436,11 +442,17 @@ All settings are in `config.py` and read from `.env`. Every setting has a sensib
 >
 > **Switching embedding providers:** Different models produce different vector dimensions. When changing `EMBEDDING_PROVIDER`, update `EMBEDDING_DIMENSION` and delete `faiss_indices/` to re-index.
 
+### Pipeline Behavior
+
+| Variable          | Default   | Description |
+|-------------------|-----------|-------------|
+| `INTENT_OVERRIDE` | *(empty)* | Set to `SQL` to force all queries through as `TEXT_TO_SQL`. The LLM still runs for question rephrasing; only the intent classification result is overridden. Useful when your application is purely data-query focused and you never want `MISLEADING_QUERY` / `GENERAL` rejections. |
+
 ### Pipeline Tuning
 
 | Variable                                    | Default | Description                                       |
 |---------------------------------------------|---------|---------------------------------------------------|
-| `COLUMN_INDEXING_BATCH_SIZE`               | `50`    | Max columns per DDL chunk                         |
+| `COLUMN_INDEXING_BATCH_SIZE`               | `15`    | Max columns per DDL chunk                         |
 | `TABLE_RETRIEVAL_SIZE`                     | `10`    | Top-K tables retrieved in semantic search         |
 | `TABLE_COLUMN_RETRIEVAL_SIZE`              | `100`   | Over-fetch limit for column-level retrieval       |
 | `HISTORICAL_QUESTION_SIMILARITY_THRESHOLD` | `0.9`   | Threshold for exact question matching             |
@@ -662,7 +674,8 @@ Each document's text content is embedded via the configured embedding provider (
 - `TEXT_TO_SQL` — proceed to SQL generation
 - `MISLEADING_QUERY` — question is off-topic, stop
 - `GENERAL` — question is too vague, stop
-- Also rephrases follow-up questions into standalone queries
+- Also rephrases follow-up questions into standalone queries using conversation history (question + NL answer + SQL per turn)
+- Set `INTENT_OVERRIDE=SQL` to force `TEXT_TO_SQL` while still running the LLM for rephrasing
 
 **4. SQL Generation**
 - LLM generates SQL with the full prompt: DDL + SQL examples + instructions + question
