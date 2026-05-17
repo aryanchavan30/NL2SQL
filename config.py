@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     llm_provider: str = "groq"        # groq | openai | azure_openai | ollama
     llm_mode: str = "api"             # api | local  (controls enrichment concurrency)
     embedding_provider: str = "ollama"  # ollama | openai | azure_openai
+    vector_store_provider: str = "faiss"  # faiss | qdrant
+
+    # ── Qdrant ───────────────────────────────────────────────────────────
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_api_key: str = ""          # empty = no auth (local Docker)
 
     # ── Groq (defaults so they're optional when using other providers) ───
     groq_api_key: str = ""

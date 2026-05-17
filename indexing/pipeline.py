@@ -6,7 +6,7 @@ import orjson
 from langchain_core.embeddings import Embeddings
 
 from indexing.chunkers import DDLChunker, SqlPairsConverter, TableDescriptionChunker, ViewChunker
-from indexing.store import Document, FAISSStoreManager
+from indexing.store import Document
 
 logger = logging.getLogger("nl2sql")
 
@@ -19,7 +19,7 @@ class IndexingPipeline:
 
     def __init__(
         self,
-        store_manager: FAISSStoreManager,
+        store_manager,
         embeddings: Embeddings,
         column_batch_size: int = 50,
     ):

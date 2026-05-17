@@ -17,7 +17,7 @@ from generation.intent import IntentClassifier
 from generation.sql_correction import SQLCorrector, SQLValidator
 from generation.sql_gen import SQLGenerator
 from indexing.pipeline import IndexingPipeline
-from indexing.store import FAISSStoreManager
+from providers import create_store_manager
 from mdl.adapter import create_adapter
 from mdl.schema import MDL
 from retrieval.db_schema import DBSchemaRetrieval
@@ -40,6 +40,7 @@ class NL2SQLEngine:
         self.store_manager = None
         self.adapter = None
         self.llm: BaseChatModel | None = None
+        self._embeddings = None
         self.ask_service: AskService | None = None
         self.semantics_service: SemanticsPreparationService | None = None
         self.answer_generator: AnswerGenerator | None = None
@@ -57,6 +58,7 @@ class NL2SQLEngine:
 
         print(f"[2/5] Initializing Embeddings ({s.embedding_provider})...")
         embeddings = create_embeddings(s)
+        self._embeddings = embeddings
         try:
             await embeddings.aembed_query("test")
         except Exception as e:
@@ -67,11 +69,8 @@ class NL2SQLEngine:
             print(f"  Error: {e}")
             sys.exit(1)
 
-        print("[3/5] Initializing FAISS stores...")
-        self.store_manager = FAISSStoreManager(
-            dimension=s.embedding_dimension,
-            persist_dir=s.faiss_persist_dir,
-        )
+        print(f"[3/5] Initializing vector stores ({s.vector_store_provider})...")
+        self.store_manager = create_store_manager(s)
         self.store_manager.load_all()
 
         print(f"[4/5] Connecting to database ({s.db_type})...")
@@ -312,6 +311,33 @@ class NL2SQLEngine:
         """Execute SQL and return (columns, rows)."""
         return await self.adapter.execute_sql(sql)
 
+    async def add_sql_pair(self, question: str, sql: str) -> None:
+        """Embed question and store as a sql_pair in the vector store."""
+        import uuid
+        from indexing.store import Document
+
+        embedding = await self._embeddings.aembed_query(question)
+        doc = Document(
+            content=question,
+            meta={
+                "sql_pair_id": str(uuid.uuid4()),
+                "sql": sql,
+                "project_id": "default",
+            },
+            embedding=embedding,
+        )
+        store = self.store_manager.get_store("sql_pairs")
+        store.add_documents([doc])
+        store.save()
+
+    def list_sql_pairs(self) -> list[dict]:
+        """Return all stored sql_pairs for the default project."""
+        store = self.store_manager.get_store("sql_pairs")
+        docs = store.search_by_filter(
+            lambda d: d.meta.get("project_id") == "default"
+        )
+        return [{"question": d.content, "sql": d.meta.get("sql", "")} for d in docs]
+
     async def generate_answer(
         self, query: str, sql: str, columns: list[str], rows: list[dict]
     ) -> dict:
@@ -444,6 +470,8 @@ async def main():
     print("  mdl                  — Show current MDL summary")
     print("  history              — Show conversation history")
     print("  clear                — Clear conversation history")
+    print("  addpair              — Add a question→SQL example pair")
+    print("  pairs                — List all stored SQL pairs")
     print()
 
     last_sql = None
@@ -464,6 +492,31 @@ async def main():
         if question.lower() == "reindex":
             await engine.index_from_db()
             engine._histories.clear()
+            continue
+
+        if question.lower() == "addpair":
+            try:
+                q = input("  Question: ").strip()
+                s = input("  SQL:      ").strip()
+                if q and s:
+                    await engine.add_sql_pair(q, s)
+                    print(f"  Saved. sql_pairs now has {engine.store_manager.get_store('sql_pairs').count_documents()} pairs.\n")
+                else:
+                    print("  Cancelled (empty input).\n")
+            except (EOFError, KeyboardInterrupt):
+                print()
+            continue
+
+        if question.lower() == "pairs":
+            pairs = engine.list_sql_pairs()
+            if pairs:
+                print(f"\n  Stored SQL pairs ({len(pairs)}):")
+                for i, p in enumerate(pairs, 1):
+                    print(f"    {i}. Q: {p['question']}")
+                    print(f"       SQL: {p['sql'][:100]}{'...' if len(p['sql']) > 100 else ''}")
+            else:
+                print("\n  No SQL pairs stored yet. Use 'addpair' to add one.")
+            print()
             continue
 
         if question.lower() == "mdl":

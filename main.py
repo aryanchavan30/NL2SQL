@@ -12,13 +12,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from api.routes import router
 from config import Settings
-from providers import create_llm, create_embeddings
+from providers import create_llm, create_embeddings, create_store_manager
 from generation.intent import IntentClassifier
 from generation.sql_correction import SQLCorrector, SQLValidator
 from generation.answer import AnswerGenerator
 from generation.sql_gen import SQLGenerator
 from indexing.pipeline import IndexingPipeline
-from indexing.store import FAISSStoreManager
 from mdl.adapter import create_adapter
 from retrieval.db_schema import DBSchemaRetrieval
 from retrieval.historical import HistoricalQuestionRetrieval
@@ -49,13 +48,10 @@ async def lifespan(app: FastAPI):
     embeddings = create_embeddings(settings)
     logger.info(f"Embeddings initialized: provider={settings.embedding_provider}")
 
-    # Init FAISS store manager
-    store_manager = FAISSStoreManager(
-        dimension=settings.embedding_dimension,
-        persist_dir=settings.faiss_persist_dir,
-    )
+    # Init vector store manager
+    store_manager = create_store_manager(settings)
     store_manager.load_all()
-    logger.info("FAISS stores loaded")
+    logger.info(f"Vector stores loaded: provider={settings.vector_store_provider}")
 
     # Init database adapter
     adapter = create_adapter(settings)

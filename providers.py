@@ -84,3 +84,22 @@ def create_embeddings(settings: Settings) -> Embeddings:
         )
 
     raise ValueError(f"Unknown embedding_provider: {provider!r}")
+
+
+def create_store_manager(settings: "Settings"):
+    """Return FAISSStoreManager or QdrantStoreManager based on settings."""
+    if settings.vector_store_provider == "qdrant":
+        from indexing.qdrant_store import QdrantStoreManager
+
+        return QdrantStoreManager(
+            dimension=settings.embedding_dimension,
+            url=settings.qdrant_url,
+            api_key=settings.qdrant_api_key,
+        )
+
+    from indexing.store import FAISSStoreManager
+
+    return FAISSStoreManager(
+        dimension=settings.embedding_dimension,
+        persist_dir=settings.faiss_persist_dir,
+    )

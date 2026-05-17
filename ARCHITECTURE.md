@@ -93,9 +93,9 @@
 
 | Component        | Technology                        | Purpose                                    |
 |------------------|-----------------------------------|--------------------------------------------|
-| LLM              | Groq `llama-3.3-70b-versatile`    | SQL generation, intent classification, correction, NL answers, MDL description enrichment |
-| Embeddings       | Ollama `nomic-embed-text` (768d)  | Semantic search for table/question matching |
-| Vector Store     | FAISS (`IndexFlatIP`)             | Similarity search with L2-normalized inner product |
+| LLM              | Groq (default), OpenAI, Azure OpenAI, or Ollama | SQL generation, intent classification, correction, NL answers, MDL enrichment |
+| Embeddings       | Ollama `nomic-embed-text` 768d (default), OpenAI, or Azure OpenAI | Semantic search for table/question matching |
+| Vector Store     | FAISS `IndexFlatIP` (default) or Qdrant | Similarity search — selectable via `VECTOR_STORE_PROVIDER` |
 | Target Database  | Multi-DB via `DatabaseAdapter` ABC | PostgreSQL (`asyncpg`), MySQL (`aiomysql`), MSSQL (`aioodbc`), Snowflake, BigQuery, Databricks |
 | API Framework    | FastAPI                           | REST endpoints with async lifespan         |
 | Schema Validation| Pydantic v2                       | MDL models, API request/response models    |
@@ -127,8 +127,9 @@ NL2SQL/
 │
 ├── indexing/
 │   ├── store.py                 # FAISSStore, FAISSStoreManager, Document dataclass
+│   ├── qdrant_store.py          # QdrantStore, QdrantStoreManager (drop-in Qdrant backend)
 │   ├── chunkers.py              # DDLChunker, TableDescriptionChunker, ViewChunker, SqlPairsConverter
-│   └── pipeline.py              # IndexingPipeline (5 parallel sub-pipelines)
+│   └── pipeline.py              # IndexingPipeline (5 sub-pipelines: parallel or sequential)
 │
 ├── retrieval/
 │   ├── db_schema.py             # 2-phase table discovery + schema fetch
@@ -169,11 +170,40 @@ All settings live in one `Settings` class (Pydantic `BaseSettings`), reading fro
 
 ```
 # .env example
+# ── Provider selection ─────────────────────────────────────────────
+LLM_PROVIDER=groq              # groq | openai | azure_openai | ollama
+LLM_MODE=api                   # api (sequential enrichment, for Groq/OpenAI) | local (concurrent, for Ollama)
+EMBEDDING_PROVIDER=ollama      # ollama | openai | azure_openai
+VECTOR_STORE_PROVIDER=faiss    # faiss | qdrant
+
+# Groq
 GROQ_API_KEY=gsk_...
 GROQ_MODEL=llama-3.3-70b-versatile
+
+# Ollama (LLM + Embeddings)
 OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_LLM_MODEL=llama3.2
 OLLAMA_EMBEDDING_MODEL=nomic-embed-text
 EMBEDDING_DIMENSION=768
+
+# OpenAI (if LLM_PROVIDER=openai or EMBEDDING_PROVIDER=openai)
+# OPENAI_API_KEY=sk-...
+# OPENAI_MODEL=gpt-4o
+# OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+
+# Azure OpenAI (if LLM_PROVIDER=azure_openai or EMBEDDING_PROVIDER=azure_openai)
+# AZURE_OPENAI_API_KEY=...
+# AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+# AZURE_OPENAI_API_VERSION=2024-06-01
+# AZURE_OPENAI_LLM_DEPLOYMENT=your-deployment
+# AZURE_OPENAI_EMBEDDING_DEPLOYMENT=your-embedding-deployment
+
+# ── Vector Store ───────────────────────────────────────────────────
+FAISS_PERSIST_DIR=./faiss_indices
+# QDRANT_URL=http://localhost:6333
+# QDRANT_API_KEY=                # empty = no auth (local Docker)
+
+# ── Database ───────────────────────────────────────────────────────
 DB_TYPE=postgresql            # postgresql | mysql | mssql | snowflake | bigquery | databricks
 DB_HOST=localhost
 DB_PORT=5432
@@ -182,8 +212,9 @@ DB_PASSWORD=postgres
 DB_DATABASE=northwind
 DB_SCHEMA=public
 # DB_CONNECTION_STRING=       # Full override for cloud databases
-FAISS_PERSIST_DIR=./faiss_indices
+
 LOG_LEVEL=INFO
+INTENT_OVERRIDE=              # Set to SQL to force TEXT_TO_SQL always
 ```
 
 > Legacy `PG_*` env vars still work as fallback for PostgreSQL.
@@ -192,7 +223,7 @@ LOG_LEVEL=INFO
 
 | Setting                                    | Default | What it controls                                    |
 |--------------------------------------------|---------|-----------------------------------------------------|
-| `column_indexing_batch_size`               | 50      | Max columns per DDL chunk document                  |
+| `column_indexing_batch_size`               | 15      | Max columns per DDL chunk document                  |
 | `table_retrieval_size`                     | 10      | Top-K tables in Phase 1 discovery                   |
 | `table_column_retrieval_size`              | 100     | Over-fetch limit for column retrieval               |
 | `historical_question_similarity_threshold` | 0.9     | Exact question match (very strict)                  |
@@ -203,6 +234,7 @@ LOG_LEVEL=INFO
 | `max_sql_correction_retries`              | 3       | SQL validation+correction retry loops               |
 | `ask_cache_maxsize`                        | 1000000 | TTLCache max entries                                |
 | `ask_cache_ttl`                            | 120     | Cache time-to-live (seconds)                        |
+| `intent_override`                          | ""      | Set to `SQL` to skip LLM classification and always return `TEXT_TO_SQL` |
 
 ---
 
@@ -258,7 +290,11 @@ For each table:
   5. Update model.properties["description"] and column.properties["description"]
 ```
 
-This runs sequentially (one table at a time) to stay within Groq rate limits. If sample data fetch or LLM call fails for a table, it keeps the generic description and continues.
+Concurrency is controlled by `LLM_MODE`:
+- `api` (default, `concurrency=1`): sequential, one table at a time — safe for Groq/OpenAI rate limits
+- `local` (`concurrency=4`): 4 tables processed in parallel — for local Ollama without rate limits
+
+If sample data fetch or LLM call fails for a table, it keeps the generic description and continues.
 
 ---
 
@@ -334,6 +370,27 @@ One FAISS index per collection. Manages two document lists:
 - **Persistence:** `.faiss` binary (FAISS index) + `.meta.pkl` (pickled document lists)
 - **Deletion:** Rebuilds entire FAISS index excluding filtered docs (no incremental delete)
 
+### Store Manager Factory
+
+`providers.create_store_manager(settings)` returns the right implementation based on `settings.vector_store_provider`:
+
+```python
+# VECTOR_STORE_PROVIDER=faiss  →  FAISSStoreManager(dimension, persist_dir)
+# VECTOR_STORE_PROVIDER=qdrant →  QdrantStoreManager(dimension, url, api_key)
+```
+
+Both managers implement the same interface: `get_store(name)`, `load_all()`, `save_all()`.
+
+### QdrantStore (`indexing/qdrant_store.py`)
+
+Drop-in replacement for `FAISSStore`. Backed by a remote Qdrant server (Docker or cloud).
+
+- **Persistence:** Server-side — `save()` and `load()` are no-ops
+- **Search:** Uses Qdrant's native COSINE distance (returns `[0,1]`, same range as FAISS after normalization)
+- **Filtering:** Scrolls all docs and applies Python `filter_fn` in-memory (collections are small, ≤200 docs)
+- **Meta-only docs:** Stored with zero vector + `has_embedding=False` payload flag; excluded from vector search
+- **IDs:** UUID strings used directly as Qdrant point IDs
+
 ### FAISSStoreManager
 
 Manages 6 named collections:
@@ -364,7 +421,9 @@ MDL JSON string
 Parse JSON → dict
     │
     ▼
-Run 5 sub-pipelines in parallel (asyncio.gather):
+Run 5 sub-pipelines:
+  - Sequential if on_progress callback provided (CLI — clean progress bars)
+  - Parallel via asyncio.gather if no callback (API — max throughput)
     │
     ├── 1. _index_db_schema ─────────────────────────────────────────
     │      DDLChunker converts MDL into documents:
@@ -421,7 +480,9 @@ Run 5 sub-pipelines in parallel (asyncio.gather):
 
     │
     ▼
-Save all indices to disk (faiss_indices/*.faiss + *.meta.pkl)
+Save all indices:
+  - FAISS: faiss_indices/*.faiss + *.meta.pkl
+  - Qdrant: no-op (server persists automatically)
 ```
 
 ### How embedding works
@@ -433,18 +494,18 @@ Save all indices to disk (faiss_indices/*.faiss + *.meta.pkl)
 
 ### How chunking works per table
 
-For a table with 120 columns and 3 foreign keys:
+For a table with 45 columns and 3 foreign keys (default batch size = 15):
 
 ```
-Table "orders" (120 columns, 3 FKs)
+Table "orders" (45 columns, 3 FKs)
     │
-    ├── TABLE_COLUMNS chunk 1: columns[0:50] + FK constraints  → 1 document, 1 embedding
-    ├── TABLE_COLUMNS chunk 2: columns[50:100]                 → 1 document, 1 embedding
-    ├── TABLE_COLUMNS chunk 3: columns[100:120]                → 1 document, 1 embedding
+    ├── TABLE_COLUMNS chunk 1: columns[0:15] + FK constraints  → 1 document, 1 embedding
+    ├── TABLE_COLUMNS chunk 2: columns[15:30]                  → 1 document, 1 embedding
+    ├── TABLE_COLUMNS chunk 3: columns[30:45]                  → 1 document, 1 embedding
     └── TABLE chunk: {alias, description}                       → 1 document, 1 embedding
 ```
 
-Column batch size (50) keeps each chunk within reasonable embedding context. Hidden columns and relationship-only columns are excluded.
+Column batch size (default 15, set via `COLUMN_INDEXING_BATCH_SIZE`) keeps each chunk within embedding context limits. Hidden columns and relationship-only columns are excluded.
 
 ---
 
@@ -766,7 +827,7 @@ Startup:
   Settings()
     → ChatGroq(model, api_key, temperature=0)
     → OllamaEmbeddings(base_url, model)
-    → FAISSStoreManager(dimension=768) → load_all()
+    → create_store_manager(settings) → FAISSStoreManager or QdrantStoreManager → load_all()
     → create_adapter(settings) → DatabaseAdapter subclass
     → IndexingPipeline(store_manager, embeddings, batch_size=50)
     → HistoricalQuestionRetrieval(threshold=0.9)
@@ -799,10 +860,10 @@ Shutdown:
 ### Startup
 
 ```
-[1/5] Initializing LLM (Groq)...
-[2/5] Initializing Embeddings (Ollama)...         # Tests connection
-[3/5] Initializing FAISS stores...                 # Loads from disk
-[4/5] Connecting to database (postgresql)...       # Tests connection via adapter
+[1/5] Initializing LLM (<provider>)...
+[2/5] Initializing Embeddings (<provider>)...      # Tests connection via aembed_query("test")
+[3/5] Initializing vector stores (<provider>)...   # FAISS: loads from disk; Qdrant: ensures collections exist
+[4/5] Connecting to database (<db_type>)...        # Tests via adapter.execute_sql("SELECT 1")
 [5/5] Wiring services...                           # Same as main.py
 ```
 
@@ -819,16 +880,18 @@ If no existing index is found, `run.py` introspects the database via the appropr
 
 ### Interactive commands
 
-| Command    | Action                                          |
-|------------|-------------------------------------------------|
-| `exit`     | Quit                                            |
-| `reindex`  | Re-introspect DB and rebuild all indices        |
-| `run`      | Execute the last generated SQL, show raw results|
-| `tables`   | List all indexed tables with descriptions       |
-| `mdl`      | Show current MDL structure                      |
-| `history`  | Show conversation history (for follow-ups)      |
-| `clear`    | Clear conversation history                      |
-| *(text)*   | Ask a natural language question                 |
+| Command    | Action                                                        |
+|------------|---------------------------------------------------------------|
+| `exit`     | Quit                                                          |
+| `reindex`  | Re-introspect DB and rebuild all indices                      |
+| `run`      | Execute the last generated SQL, show raw results              |
+| `tables`   | List all indexed tables with descriptions                     |
+| `mdl`      | Show current MDL structure                                    |
+| `history`  | Show conversation history (for follow-ups)                    |
+| `clear`    | Clear conversation history                                    |
+| `addpair`  | Interactively add a question→SQL example pair to vector store |
+| `pairs`    | List all stored SQL pair examples                             |
+| *(text)*   | Ask a natural language question                               |
 
 ### Question flow in run.py
 
@@ -1034,13 +1097,23 @@ Add instructions to the `instructions` FAISS store (via API or MDL sql_pairs). T
 
 ### Swap the LLM
 
-Replace `ChatGroq` with any LangChain-compatible LLM in `config.py` and `main.py`. The system uses standard `ainvoke([messages])` and `response_format={"type": "json_object"}` — ensure your LLM supports JSON mode.
+Set `LLM_PROVIDER` in `.env`: `groq` | `openai` | `azure_openai` | `ollama`. Add the matching provider-specific vars (API key, model name, endpoint). `providers.create_llm(settings)` handles the rest — all generation code is provider-agnostic via LangChain's `BaseChatModel`. Ensure the chosen provider supports `response_format={"type": "json_object"}` (JSON mode).
+
+For Ollama specifically: uses `ChatOpenAI` pointed at Ollama's OpenAI-compatible endpoint (`OLLAMA_BASE_URL/v1`). Set `LLM_MODE=local` to enable concurrent MDL enrichment.
 
 ### Swap the embedding model
 
-1. Change `OLLAMA_EMBEDDING_MODEL` and `EMBEDDING_DIMENSION` in `.env`
-2. Delete `faiss_indices/` directory
-3. Re-index (embeddings are model-specific, old indices are incompatible)
+1. Change `OLLAMA_EMBEDDING_MODEL` (or `OPENAI_EMBEDDING_MODEL`) and `EMBEDDING_DIMENSION` in `.env`
+2. Delete `faiss_indices/` (FAISS) or drop Qdrant collections (Qdrant)
+3. Re-index — embeddings are model-specific, old indices are incompatible
+
+### Swap the vector store
+
+Set `VECTOR_STORE_PROVIDER` in `.env`:
+- `faiss` (default) — local FAISS indices in `faiss_indices/`; zero setup
+- `qdrant` — remote Qdrant server; set `QDRANT_URL` and optional `QDRANT_API_KEY`
+
+`providers.create_store_manager(settings)` returns the right implementation. Both `FAISSStoreManager` and `QdrantStoreManager` implement the same interface — all pipeline, retrieval, and service code is transparent to the choice.
 
 ### Add a new retrieval source
 

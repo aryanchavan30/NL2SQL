@@ -88,12 +88,13 @@ User sees: Answer + SQL + Schema used + Tables
 
 | Service      | What                                           | Setup                                                |
 |--------------|------------------------------------------------|------------------------------------------------------|
-| **LLM**      | One of: Groq, OpenAI, or Azure OpenAI          | Get an API key from your chosen provider             |
-| **Embeddings** | One of: Ollama (local), OpenAI, or Azure OpenAI | Ollama: install + `ollama pull nomic-embed-text`; OpenAI/Azure: API key |
-| Database     | Target database to query                       | PostgreSQL, MySQL, MSSQL, Snowflake, BigQuery, or Databricks |
-| Python       | 3.12+                                          | [python.org](https://www.python.org/downloads/)      |
+| **LLM**          | One of: Groq, OpenAI, Azure OpenAI, or Ollama  | API providers: get an API key; Ollama: install + `ollama pull llama3.2` |
+| **Embeddings**   | One of: Ollama (local), OpenAI, or Azure OpenAI | Ollama: install + `ollama pull nomic-embed-text`; OpenAI/Azure: API key |
+| **Vector Store** | FAISS (default) or Qdrant                      | FAISS: zero setup; Qdrant: `docker run -d -p 6333:6333 qdrant/qdrant` |
+| Database         | Target database to query                       | PostgreSQL, MySQL, MSSQL, Snowflake, BigQuery, or Databricks |
+| Python           | 3.12+                                          | [python.org](https://www.python.org/downloads/)      |
 
-**Default providers:** Groq (LLM) + Ollama (embeddings). Set `LLM_PROVIDER` and `EMBEDDING_PROVIDER` in `.env` to switch.
+**Default providers:** Groq (LLM) + Ollama (embeddings) + FAISS (vector store). Set `LLM_PROVIDER`, `EMBEDDING_PROVIDER`, and `VECTOR_STORE_PROVIDER` in `.env` to switch.
 
 ---
 
@@ -195,16 +196,18 @@ python run.py
 
 ### Commands
 
-| Command   | Description                                      |
-|-----------|--------------------------------------------------|
-| *(text)*  | Ask a natural language question                  |
-| `run`     | Execute the last generated SQL, show raw results |
-| `reindex` | Re-introspect the database and rebuild index     |
-| `tables`  | Show all indexed tables with descriptions        |
-| `mdl`     | Show the current MDL schema summary              |
-| `history` | Show conversation history (for follow-ups)       |
-| `clear`   | Clear conversation history                       |
-| `exit`    | Quit                                             |
+| Command    | Description                                      |
+|------------|--------------------------------------------------|
+| *(text)*   | Ask a natural language question                  |
+| `run`      | Execute the last generated SQL, show raw results |
+| `reindex`  | Re-introspect the database and rebuild index     |
+| `tables`   | Show all indexed tables with descriptions        |
+| `mdl`      | Show the current MDL schema summary              |
+| `history`  | Show conversation history (for follow-ups)       |
+| `clear`    | Clear conversation history                       |
+| `addpair`  | Interactively add a question→SQL example pair    |
+| `pairs`    | List all stored SQL pair examples                |
+| `exit`     | Quit                                             |
 
 ### Follow-up questions
 
@@ -386,9 +389,10 @@ All settings are in `config.py` and read from `.env`. Every setting has a sensib
 | Variable                 | Default                     | Description                     |
 |--------------------------|-----------------------------|---------------------------------|
 | `LLM_PROVIDER`           | `groq`                      | LLM provider: `groq`, `openai`, `azure_openai`, `ollama` |
-| `LLM_MODE`               | `api`                       | `api` = concurrent MDL enrichment (fast, for API providers); `local` = sequential (for local Ollama LLM) |
+| `LLM_MODE`               | `api`                       | `local` = concurrent MDL enrichment (4 tables at once, for Ollama/local models); `api` = sequential (for Groq/OpenAI/Azure, avoids rate limits) |
 | `EMBEDDING_PROVIDER`     | `ollama`                    | Embedding provider: `ollama`, `openai`, `azure_openai` |
 | `EMBEDDING_DIMENSION`    | `768`                       | Vector dimensionality (768 for nomic-embed-text, 1536 for OpenAI text-embedding-3-small) |
+| `VECTOR_STORE_PROVIDER`  | `faiss`                     | Vector store: `faiss` (local files) or `qdrant` (Docker/cloud server) |
 
 ### Groq Settings (when `LLM_PROVIDER=groq`)
 
@@ -402,8 +406,15 @@ All settings are in `config.py` and read from `.env`. Every setting has a sensib
 | Variable                 | Default                   | Description              |
 |--------------------------|---------------------------|--------------------------|
 | `OLLAMA_BASE_URL`        | `http://localhost:11434`  | Ollama server URL        |
-| `OLLAMA_LLM_MODEL`       | `llama3.2`                | LLM model name (when `LLM_PROVIDER=ollama`) |
+| `OLLAMA_LLM_MODEL`       | `llama3.2`                | LLM model name (when `LLM_PROVIDER=ollama`). Uses Ollama's OpenAI-compatible endpoint internally. |
 | `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text`        | Embedding model name (when `EMBEDDING_PROVIDER=ollama`) |
+
+### Qdrant Settings (when `VECTOR_STORE_PROVIDER=qdrant`)
+
+| Variable          | Default                    | Description                              |
+|-------------------|----------------------------|------------------------------------------|
+| `QDRANT_URL`      | `http://localhost:6333`    | Qdrant server URL                        |
+| `QDRANT_API_KEY`  | *(empty)*                  | Qdrant API key (leave empty for local Docker) |
 
 ### OpenAI Settings (when `LLM_PROVIDER=openai` or `EMBEDDING_PROVIDER=openai`)
 
@@ -471,7 +482,7 @@ All settings are in `config.py` and read from `.env`. Every setting has a sensib
 ```
 NL2SQL/
 ├── config.py                  Settings (Pydantic BaseSettings, reads .env)
-├── providers.py               LLM + Embedding factory functions (Groq, OpenAI, Azure OpenAI, Ollama)
+├── providers.py               LLM + Embedding + StoreManager factory functions
 ├── main.py                    FastAPI app + lifespan wiring
 ├── run.py                     Interactive CLI
 ├── requirements.txt           Python dependencies
@@ -490,6 +501,7 @@ NL2SQL/
 │
 ├── indexing/
 │   ├── store.py               FAISSStore, FAISSStoreManager, Document dataclass
+│   ├── qdrant_store.py        QdrantStore, QdrantStoreManager (drop-in Qdrant backend)
 │   ├── chunkers.py            DDLChunker, TableDescriptionChunker, ViewChunker, SqlPairsConverter
 │   └── pipeline.py            IndexingPipeline (5 parallel sub-pipelines)
 │
@@ -639,18 +651,27 @@ curl -X POST http://localhost:8000/v1/asks \
 
 ## How Indexing Works
 
-When a schema is indexed, the pipeline creates 6 FAISS collections:
+When a schema is indexed, the pipeline creates 6 vector collections:
 
 | Collection           | What gets indexed                                               | Used for                          |
 |----------------------|-----------------------------------------------------------------|-----------------------------------|
-| `db_schema`          | DDL chunks — columns (batched by 50), FKs, table metadata      | Phase 2: fetch full DDL           |
+| `db_schema`          | DDL chunks — columns (batched by 15), FKs, table metadata      | Phase 2: fetch full DDL           |
 | `table_descriptions` | One doc per table: `{name, description, columns}`               | Phase 1: semantic table discovery |
 | `view_questions`     | Historical queries from views                                   | Exact question matching (0.9)     |
-| `sql_pairs`          | Question -> SQL examples                                        | In-context learning (0.7)         |
+| `sql_pairs`          | Question → SQL examples                                         | In-context learning (0.7)         |
 | `instructions`       | User-defined SQL generation rules                               | Custom rules in prompts           |
 | `project_meta`       | Project metadata (no embeddings)                                | Multi-tenant filtering            |
 
-Each document's text content is embedded via the configured embedding provider (default: Ollama `nomic-embed-text`, 768 dimensions), L2-normalized, and stored in a FAISS `IndexFlatIP` index. The indices are persisted to disk as `.faiss` + `.meta.pkl` files and reloaded on next startup. Set `EMBEDDING_DIMENSION` to match your model (768 for nomic-embed-text, 1536 for OpenAI text-embedding-3-small).
+Each document's text content is embedded via the configured embedding provider (default: Ollama `nomic-embed-text`, 768 dimensions) and stored in the configured vector store.
+
+**FAISS** (`VECTOR_STORE_PROVIDER=faiss`): L2-normalized inner product index, persisted to `.faiss` + `.meta.pkl` files in `faiss_indices/`.
+
+**Qdrant** (`VECTOR_STORE_PROVIDER=qdrant`): Cosine similarity, persisted server-side. Start with:
+```bash
+docker run -d -p 6333:6333 -v qdrant_storage:/qdrant/storage qdrant/qdrant
+```
+
+Set `EMBEDDING_DIMENSION` to match your model (768 for nomic-embed-text, 1536 for OpenAI text-embedding-3-small). When changing `VECTOR_STORE_PROVIDER` or `EMBEDDING_PROVIDER`, re-index from scratch.
 
 ---
 
@@ -751,6 +772,21 @@ If you still need to tune, edit `mdl/<db_database>_mdl.json` and improve descrip
 
 Then reload: `python run.py --mdl mdl/northwind_mdl.json`
 
+### Cannot connect to Qdrant
+
+```bash
+# Check container is running
+docker ps --filter "publish=6333"
+
+# Start if stopped
+docker start qdrant
+
+# Verify
+curl http://localhost:6333/healthz
+```
+
+If using `VECTOR_STORE_PROVIDER=qdrant` and Qdrant is down, the service won't start.
+
 ### SQL generation errors
 
 If the LLM generates invalid SQL repeatedly:
@@ -766,7 +802,9 @@ If your database schema changed:
 Question> reindex
 ```
 
-Or delete `faiss_indices/` and restart.
+Or for a full reset:
+- **FAISS:** delete `faiss_indices/` and restart
+- **Qdrant:** delete collections via `http://localhost:6333/dashboard` or restart with fresh storage
 
 ---
 
